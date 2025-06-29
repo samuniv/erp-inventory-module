@@ -1,3 +1,6 @@
+using Inventory.Service.Data;
+using Inventory.Service.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -5,6 +8,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 // Add authentication
@@ -25,31 +29,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Add authorization
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("RequireAuthentication", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-    });
+builder.Services.AddAuthorization();
 
-// Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAngularApp", policy =>
-    {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
+// Add Entity Framework with Oracle
+builder.Services.AddDbContext<InventoryDbContext>(options =>
+    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add YARP
-builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+// Add application services
+builder.Services.AddScoped<IInventoryService, Inventory.Service.Services.InventoryService>();
+builder.Services.AddSingleton<IAlertProducerService, AlertProducerService>();
 
 // Add health checks
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<InventoryDbContext>();
 
 var app = builder.Build();
 
@@ -60,22 +52,27 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-// Use CORS
-app.UseCors("AllowAngularApp");
-
-// Use authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Use YARP
-app.MapReverseProxy();
+app.MapControllers();
 
 // Map health checks
 app.MapHealthChecks("/health");
 
-// Add a simple endpoint to test the gateway
-app.MapGet("/", () => "ERP Inventory Module API Gateway - Running")
-   .WithName("GatewayStatus")
-   .WithTags("Gateway");
+// Add a simple endpoint to test the service
+app.MapGet("/", () => "Inventory Service - Running")
+   .WithName("InventoryServiceStatus")
+   .WithTags("Status");
+
+// Initialize database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+    await DbInitializer.InitializeAsync(context);
+}
 
 app.Run();
+
+// Make Program class accessible for testing
+public partial class Program { }

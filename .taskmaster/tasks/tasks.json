@@ -171,7 +171,7 @@
           2,
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -247,7 +247,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -255,15 +255,15 @@
             "description": "Develop the foundational RESTful API endpoints (Create, Read, Update, Delete) for managing inventory items. This includes setting up the project structure, data models, repository layer for Oracle DB interaction, and the core service layer.",
             "dependencies": [],
             "details": "Endpoints to implement: POST /api/inventory, GET /api/inventory/{id}, PUT /api/inventory/{id}. Use an ORM like Entity Framework Core or Dapper for Oracle database connectivity. Define the `InventoryItem` entity and corresponding database schema.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
             "title": "Define and Implement Kafka Message Contract for Alerts",
             "description": "Create a well-defined data contract (e.g., a C# class or Avro schema) for the low-stock alert message that will be published to Kafka. This ensures consistency between the producer and any potential consumers.",
             "dependencies": [],
-            "details": "Define a `LowStockAlertEvent` class with properties like `ItemId`, `ItemName`, `CurrentStockLevel`, `Timestamp`. Ensure this class is serializable to JSON for transmission over Kafka.",
-            "status": "pending"
+            "details": "Define a `LowStockAlertEvent` class with properties like `ItemId`, `ItemName`, `CurrentStockLevel`, `Timestamp`. Ensure this class is serializable to JSON for transmission over Kafka.\n<info added on 2025-06-29T17:20:30.809Z>\nSuccessfully implemented comprehensive Kafka message contracts.\n\nThe LowStockAlertEvent contract is now complete with ItemId, ItemName, SKU, current/threshold stock levels, severity levels (Info/Warning/Critical), category, supplier ID, timestamp, and a unique alert ID. It includes proper JSON serialization attributes.\n\nA new InventoryUpdatedEvent contract has been created for tracking all inventory changes. It includes current/previous stock levels, operation types (Created/Updated/StockAdjusted/Deleted/StockReceived/StockAllocated), category, price, supplier ID, the 'updatedBy' user, and a metadata dictionary for additional context.\n\nAn AlertProducerService has been configured as the Kafka producer, featuring error handling, retry logic, idempotence, and message headers. It supports publishing both low stock alerts and inventory update events.\n\nThe InventoryService business logic has been updated to integrate these event contracts, ensuring correct property mappings and operation types are used. Both event contracts are now ready for Kafka message publishing.\n</info added on 2025-06-29T17:20:30.809Z>",
+            "status": "done"
           },
           {
             "id": 3,
@@ -272,8 +272,8 @@
             "dependencies": [
               2
             ],
-            "details": "Add the Confluent.Kafka NuGet package. Create a dedicated `AlertProducerService` to encapsulate the producer logic. Configure the Kafka topic name and bootstrap servers in the application's configuration (e.g., appsettings.json).",
-            "status": "pending"
+            "details": "Add the Confluent.Kafka NuGet package. Create a dedicated `AlertProducerService` to encapsulate the producer logic. Configure the Kafka topic name and bootstrap servers in the application's configuration (e.g., appsettings.json).\n<info added on 2025-06-29T17:22:03.913Z>\nKafka client integration is complete. The AlertProducerService has been fully implemented with producer settings for Acks.All, retry logic, and idempotence. It includes error handling with structured logging, message headers for event tracking, and supports both 'inventory.alerts' and 'inventory.updated' topics. Configuration in appsettings.json is set with bootstrap servers at localhost:9092. The service is registered as a singleton via dependency injection. The solution builds successfully and is ready for testing once the Oracle database is available.\n</info added on 2025-06-29T17:22:03.913Z>",
+            "status": "done"
           },
           {
             "id": 4,
@@ -283,8 +283,8 @@
               1,
               3
             ],
-            "details": "In the service method that handles inventory updates (e.g., `UpdateInventoryItem`), after successfully saving the changes to the Oracle database, compare the new quantity against a configured `LowStockThreshold`. If the quantity is at or below the threshold, invoke the `AlertProducerService` to send the `LowStockAlertEvent`.",
-            "status": "pending"
+            "details": "In the service method that handles inventory updates (e.g., `UpdateInventoryItem`), after successfully saving the changes to the Oracle database, compare the new quantity against a configured `LowStockThreshold`. If the quantity is at or below the threshold, invoke the `AlertProducerService` to send the `LowStockAlertEvent`.\n<info added on 2025-06-29T17:23:33.813Z>\nLow-stock checks have been implemented across all relevant business methods including CreateItemAsync, UpdateItemAsync, and AdjustStockAsync. The logic features an advanced severity assessment: Critical (stock = 0), Warning (stock ≤ 50% of reorder threshold), and Info (stock ≤ reorder threshold). The LowStockAlertEvent payload has been enriched to include item identification (ID, name, SKU), stock vs threshold levels, category and supplier information, a severity classification with timestamp, and a unique alert ID. Alerts are triggered only after successful Oracle database saves with proper transaction handling, and are published to the inventory.alerts topic via the AlertProducerService.\n</info added on 2025-06-29T17:23:33.813Z>",
+            "status": "done"
           },
           {
             "id": 5,
@@ -293,8 +293,8 @@
             "dependencies": [
               4
             ],
-            "details": "Use the Testcontainers for .NET library. Create a test fixture that starts and manages both an Oracle container (e.g., gvenzl/oracle-xe) and a Kafka container (e.g., confluentinc/cp-kafka). Write a test that calls the update API endpoint to trigger the low-stock condition, then uses a test Kafka consumer to verify that the correct message was published to the alert topic.",
-            "status": "pending"
+            "details": "Use the Testcontainers for .NET library. Create a test fixture that starts and manages both an Oracle container (e.g., gvenzl/oracle-xe) and a Kafka container (e.g., confluentinc/cp-kafka). Write a test that calls the update API endpoint to trigger the low-stock condition, then uses a test Kafka consumer to verify that the correct message was published to the alert topic.\n<info added on 2025-06-29T17:31:23.251Z>\nSuccessfully implemented comprehensive multi-container integration tests with Testcontainers. A dedicated Inventory.Service.IntegrationTests project was created with dependencies for Testcontainers (core, Oracle, Kafka), Microsoft.AspNetCore.Mvc.Testing, and Confluent.Kafka. An InventoryIntegrationTestFixture was implemented to manage an Oracle container (gvenzl/oracle-xe:21-slim-faststart) and a Kafka container (confluentinc/cp-kafka:7.6.1). This fixture handles WebApplicationFactory setup, database initialization, and provides helper methods for Kafka clients. Four key integration tests were created to cover the end-to-end flow for creating items with low stock, updating stock below the threshold, adjusting stock to zero for critical alerts, and querying for low stock items. Each test validates the HTTP API functionality, Oracle database persistence, and Kafka message publication, providing a production-ready infrastructure for testing the complete system.\n</info added on 2025-06-29T17:31:23.251Z>",
+            "status": "done"
           }
         ]
       },
@@ -309,7 +309,7 @@
           1,
           6
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -317,7 +317,7 @@
             "description": "Initialize the ASP.NET Core Web API project for the Order Service. Configure the database context, connection strings, and define the initial database schema for orders and order items using Entity Framework Core.",
             "dependencies": [],
             "details": "Create the solution and project structure for Order.Service. Add necessary NuGet packages (e.g., EF Core, Npgsql/SqlServer, Confluent.Kafka). Define Order and OrderItem entities. Set up the DbContext and configure it in Program.cs. Create and apply the initial database migration.",
-            "status": "pending"
+            "status": "in-progress"
           },
           {
             "id": 2,
@@ -817,7 +817,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-29T15:32:08.198Z",
+      "updated": "2025-06-29T17:32:16.543Z",
       "description": "Tasks for master context"
     }
   }
