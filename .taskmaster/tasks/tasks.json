@@ -309,7 +309,7 @@
           1,
           6
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -317,7 +317,7 @@
             "description": "Initialize the ASP.NET Core Web API project for the Order Service. Configure the database context, connection strings, and define the initial database schema for orders and order items using Entity Framework Core.",
             "dependencies": [],
             "details": "Create the solution and project structure for Order.Service. Add necessary NuGet packages (e.g., EF Core, Npgsql/SqlServer, Confluent.Kafka). Define Order and OrderItem entities. Set up the DbContext and configure it in Program.cs. Create and apply the initial database migration.",
-            "status": "in-progress"
+            "status": "done"
           },
           {
             "id": 2,
@@ -327,7 +327,7 @@
               1
             ],
             "details": "Create a shared library or a dedicated folder within the service for event contracts. Define C# classes or records for `OrderCreatedEvent` and `InventoryAlertEvent`. Ensure these contracts are designed for JSON serialization and include all necessary fields.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -338,7 +338,7 @@
               2
             ],
             "details": "Create an OrdersController. Implement the CreateOrder method which validates the request, saves the order to the database via the DbContext, creates an `OrderCreatedEvent` instance, serializes it, and publishes it to the 'order-created' Kafka topic using a configured Kafka producer client.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -348,7 +348,7 @@
               1
             ],
             "details": "Create a new class, such as `InventoryAlertConsumerService`, that implements the `IHostedService` interface. Implement the `StartAsync` and `StopAsync` methods for managing the consumer lifecycle. Register this service in Program.cs using `AddHostedService<InventoryAlertConsumerService>()`.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -359,7 +359,7 @@
               4
             ],
             "details": "In the `StartAsync` method of the consumer service, configure and build a Kafka consumer client. Subscribe to the 'inventory-alerts' topic. Implement a consumption loop that polls for messages, deserializes the message into an `InventoryAlertEvent` object, and executes the required business logic (e.g., logging a warning, updating an order status).",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 6,
@@ -370,7 +370,7 @@
               5
             ],
             "details": "Create an integration test project. For the API, use `WebApplicationFactory` to test the `POST /api/orders` endpoint and verify that the correct `OrderCreatedEvent` is published to a test Kafka topic. For the consumer, manually publish an `InventoryAlertEvent` to a test topic and assert that the `InventoryAlertConsumerService` processes it as expected.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -817,7 +817,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-29T17:32:16.543Z",
+      "updated": "2025-06-29T17:49:21.418Z",
       "description": "Tasks for master context"
     }
   }
