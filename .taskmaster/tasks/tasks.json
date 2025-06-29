@@ -184,7 +184,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -192,7 +192,7 @@
             "description": "Initialize a new .NET Web API project. Configure the necessary NuGet packages for Entity Framework Core with an Oracle provider. Set up the DbContext, connection strings, and the Supplier entity model.",
             "dependencies": [],
             "details": "Create a new .NET solution and Web API project. Add NuGet packages: Microsoft.EntityFrameworkCore, Oracle.EntityFrameworkCore, and MediatR. Define the 'Supplier' entity class. Configure the 'SupplierDbContext' to connect to an Oracle database. Set up an initial database migration.",
-            "status": "pending"
+            "status": "in-progress"
           },
           {
             "id": 2,
@@ -384,15 +384,15 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Initialize Angular Project and Integrate Angular Material",
             "description": "Create a new Angular project using the Angular CLI. Add and configure Angular Material for UI components, including a theme and typography.",
             "dependencies": [],
-            "details": "Use the command 'ng new <project-name>' to create the initial project structure. Follow up with 'ng add @angular/material' to integrate the Material Design library, selecting a pre-built theme and setting up global typography styles.",
-            "status": "pending"
+            "details": "Use the command 'ng new <project-name>' to create the initial project structure. Follow up with 'ng add @angular/material' to integrate the Material Design library, selecting a pre-built theme and setting up global typography styles.\n<info added on 2025-06-29T18:15:01.847Z>\nCreated Angular 19 project with standalone components and integrated Angular Material 19.2.19. Selected the Cyan/Orange theme and configured routing and SCSS styling. Project structure is located at erp-inventory-angular/ with all necessary dependencies installed.\n</info added on 2025-06-29T18:15:01.847Z>",
+            "status": "done"
           },
           {
             "id": 2,
@@ -402,7 +402,7 @@
               1
             ],
             "details": "Generate a main layout component that will serve as the primary container for the application. This component should include a MatToolbar for the header, a MatSidenav for navigation, and a main content area with a <router-outlet>.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -411,8 +411,8 @@
             "dependencies": [
               2
             ],
-            "details": "Create a dedicated 'app-routing.module.ts'. Define an array of Routes for public access pages like 'login' and 'home'. Also, define a basic structure for routes that will eventually be protected, pointing to placeholder components.",
-            "status": "pending"
+            "details": "Create a dedicated 'app-routing.module.ts'. Define an array of Routes for public access pages like 'login' and 'home'. Also, define a basic structure for routes that will eventually be protected, pointing to placeholder components.\n<info added on 2025-06-29T18:29:31.232Z>\nImplemented a comprehensive app routing module (`app.routes.ts`) with a clear separation between public and protected routes. This includes a public `/login` route, protected routes for the root and `/dashboard`, and a `/404` route for error handling. A standalone login component was created using Material Design and reactive forms, alongside a new `not-found` component. The main application component was enhanced to conditionally render the layout, hiding it on the login page by listening to router navigation events. The routing structure is now prepared for lazy loading future modules and includes the setup for authentication guards. SEO-friendly route titles have been added to all routes.\n</info added on 2025-06-29T18:29:31.232Z>",
+            "status": "done"
           },
           {
             "id": 4,
@@ -421,8 +421,8 @@
             "dependencies": [
               3
             ],
-            "details": "Generate a 'LoginComponent' and use Angular's Reactive Forms to build the login form. Create an 'AuthService' with 'login()' and 'logout()' methods, and use a BehaviorSubject to manage and broadcast the user's authentication status.",
-            "status": "pending"
+            "details": "Generate a 'LoginComponent' and use Angular's Reactive Forms to build the login form. Create an 'AuthService' with 'login()' and 'logout()' methods, and use a BehaviorSubject to manage and broadcast the user's authentication status.\n<info added on 2025-06-29T18:35:31.873Z>\nSuccessfully implemented comprehensive authentication system with login component and authentication service:\n\nCOMPLETED IMPLEMENTATION:\n- Created AuthService with full user state management:\n  - BehaviorSubject for currentUser$ and isAuthenticated$ observables\n  - JWT token handling with localStorage persistence\n  - Mock login functionality with 3 demo accounts (admin, manager, clerk)\n  - Token validation and expiry checking\n  - Role-based access control methods (hasRole, hasAnyRole)\n  - Automatic logout on invalid tokens\n- Enhanced LoginComponent:\n  - Integration with AuthService for actual authentication\n  - Pre-filled demo credentials (admin@erp.com)\n  - Comprehensive form validation with custom error messages\n  - Loading states and error handling\n  - MatSnackBar notifications for user feedback\n  - Demo accounts information display\n  - Redirect URL handling after login\n- Created AuthGuard for route protection:\n  - CanActivateFn implementation using functional guards\n  - Automatic redirect to login with return URL\n  - Observable-based authentication checking\n- Created AuthInterceptor for HTTP requests:\n  - Automatic JWT token injection for API calls\n  - Excludes public endpoints (login, register, etc.)\n  - Clean separation of authenticated vs public requests\n- Updated app configuration:\n  - HTTP client with interceptors configured\n  - Animation support for Material Design\n  - Proper dependency injection setup\n- Updated routing with authentication:\n  - Protected routes using authGuard\n  - Public login route\n  - Proper route structure for future expansion\n- Enhanced app component:\n  - Real-time user state from AuthService\n  - Proper logout functionality\n  - Layout conditional rendering based on authentication\n\nTECHNICAL FEATURES:\n- JWT token management with localStorage\n- Mock authentication with 3 user roles\n- Reactive forms with validation\n- Observable-based state management\n- Proper error handling and user feedback\n- Responsive Material Design UI\n- Route guards and HTTP interceptors\n\nThe authentication system is now fully functional and ready for integration with the backend services\n</info added on 2025-06-29T18:35:31.873Z>",
+            "status": "done"
           },
           {
             "id": 5,
@@ -431,8 +431,8 @@
             "dependencies": [
               4
             ],
-            "details": "Generate an 'AuthGuard' that implements the CanActivate interface, injecting the AuthService to check if a user is logged in before allowing route access. Generate an 'AuthInterceptor' to intercept HTTP requests and add the JWT token to the Authorization header.",
-            "status": "pending"
+            "details": "Generate an 'AuthGuard' that implements the CanActivate interface, injecting the AuthService to check if a user is logged in before allowing route access. Generate an 'AuthInterceptor' to intercept HTTP requests and add the JWT token to the Authorization header.\n<info added on 2025-06-29T18:36:52.520Z>\nThis subtask was already completed during subtask 8.4 implementation. Both AuthGuard and HTTP Interceptor were implemented.\n\nAuthGuard Implementation: The file is located at src/app/guards/auth/auth.guard.ts. It uses the CanActivateFn functional guard approach, an Angular 15+ best practice. It injects AuthService to check authentication status, automatically redirects to the login page if not authenticated, stores the attempted URL for redirect after login, and uses the Observable pattern for reactive authentication checking. It is applied to protected routes in app.routes.ts.\n\nHTTP Interceptor Implementation: The file is located at src/app/interceptors/auth/auth.interceptor.ts. It uses the HttpInterceptorFn functional interceptor approach. It automatically attaches the JWT token to outgoing HTTP requests using the 'Bearer {token}' format, while skipping token injection for public endpoints like login and register. It is registered in app.config.ts with the provideHttpClient configuration.\n\nIntegration and Configuration: The AuthGuard is applied to the protected route group in app.routes.ts, and the HTTP interceptor is registered in the app configuration. Both services work together for a complete authentication flow and are ready for backend API integration. The authentication infrastructure is fully implemented and functional, providing secure route protection and automatic API authentication.\n</info added on 2025-06-29T18:36:52.520Z>",
+            "status": "done"
           }
         ]
       },
@@ -817,7 +817,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-29T17:49:21.418Z",
+      "updated": "2025-06-29T18:37:42.304Z",
       "description": "Tasks for master context"
     }
   }

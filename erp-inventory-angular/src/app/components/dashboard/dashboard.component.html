@@ -1,0 +1,77 @@
+<div class="dashboard-container">
+  <div class="welcome-section">
+    <h1>Welcome to ERP Inventory Management</h1>
+    <p>Your centralized inventory management system</p>
+  </div>
+
+  <div class="dashboard-cards">
+    <mat-card class="metric-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>inventory_2</mat-icon>
+        <mat-card-title>Total Items</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value">1,234</div>
+        <div class="metric-label">Items in inventory</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>shopping_cart</mat-icon>
+        <mat-card-title>Pending Orders</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value">56</div>
+        <div class="metric-label">Orders to process</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card warning">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>warning</mat-icon>
+        <mat-card-title>Low Stock Items</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value">12</div>
+        <div class="metric-label">Items below threshold</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>business</mat-icon>
+        <mat-card-title>Active Suppliers</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metric-value">23</div>
+        <div class="metric-label">Registered suppliers</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="dashboard-actions">
+    <h2>Quick Actions</h2>
+    <div class="action-buttons">
+      <button mat-raised-button color="primary" routerLink="/inventory">
+        <mat-icon>add</mat-icon>
+        Add New Item
+      </button>
+      
+      <button mat-raised-button color="accent" routerLink="/orders">
+        <mat-icon>shopping_cart</mat-icon>
+        Create Order
+      </button>
+      
+      <button mat-raised-button routerLink="/suppliers">
+        <mat-icon>business</mat-icon>
+        Manage Suppliers
+      </button>
+      
+      <button mat-raised-button routerLink="/reports">
+        <mat-icon>analytics</mat-icon>
+        View Reports
+      </button>
+    </div>
+  </div>
+</div>

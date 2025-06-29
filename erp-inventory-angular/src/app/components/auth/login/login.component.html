@@ -1,0 +1,71 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>ERP Inventory System</mat-card-title>
+      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <!-- Demo credentials notice -->
+      <div class="demo-notice">
+        <mat-icon>info</mat-icon>
+        <span>Demo credentials are pre-filled. Click "Sign In" to continue.</span>
+      </div>
+
+      <!-- Error message -->
+      <div class="error-message" *ngIf="errorMessage">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" placeholder="Enter your email">
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error *ngIf="isFieldInvalid('email')">
+            {{ getFieldError('email') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="Enter your password">
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="isFieldInvalid('password')">
+            {{ getFieldError('password') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-checkbox formControlName="rememberMe" class="remember-me">
+          Remember me
+        </mat-checkbox>
+
+        <button mat-raised-button color="primary" type="submit" class="login-button full-width" 
+                [disabled]="loginForm.invalid || isLoading">
+          <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
+          <span>{{isLoading ? 'Signing in...' : 'Sign In'}}</span>
+        </button>
+      </form>
+
+      <!-- Demo accounts info -->
+      <div class="demo-accounts">
+        <h4>Demo Accounts:</h4>
+        <ul>
+          <li><strong>admin@erp.com</strong> - Administrator</li>
+          <li><strong>manager@erp.com</strong> - Manager</li>
+          <li><strong>clerk@erp.com</strong> - Clerk</li>
+        </ul>
+        <p><small>Password: any value works for demo</small></p>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <p class="forgot-password">
+        <a href="#" (click)="onForgotPassword($event)">Forgot your password?</a>
+      </p>
+    </mat-card-actions>
+  </mat-card>
+</div>
