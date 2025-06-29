@@ -58,7 +58,7 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var createdOrder = await response.Content.ReadFromJsonAsync<OrderResponse>();
         createdOrder.Should().NotBeNull();
         createdOrder!.CustomerName.Should().Be("John Doe");
@@ -100,7 +100,7 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var retrievedOrder = await response.Content.ReadFromJsonAsync<OrderResponse>();
         retrievedOrder.Should().NotBeNull();
         retrievedOrder!.Id.Should().Be(createdOrder.Id);
@@ -132,7 +132,7 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var orders = await response.Content.ReadFromJsonAsync<List<OrderResponse>>();
         orders.Should().NotBeNull();
         orders!.Should().HaveCountGreaterOrEqualTo(3);
@@ -153,7 +153,7 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var updatedOrder = await response.Content.ReadFromJsonAsync<OrderResponse>();
         updatedOrder.Should().NotBeNull();
         updatedOrder!.Status.Should().Be("Confirmed");
@@ -188,7 +188,7 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
         var createRequest = CreateValidOrderRequest("Workflow Customer");
         var createResponse = await _client.PostAsJsonAsync("/api/orders", createRequest);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        
+
         var order = await createResponse.Content.ReadFromJsonAsync<OrderResponse>();
         order!.Status.Should().Be("Pending");
 
@@ -232,7 +232,7 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
         // Assert - Verify in database
         using var scope = _fixture.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
-        
+
         var dbOrder = await context.Orders
             .Include(o => o.OrderItems)
             .FirstOrDefaultAsync(o => o.Id == createdOrder!.Id);

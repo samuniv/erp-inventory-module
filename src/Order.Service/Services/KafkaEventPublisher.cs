@@ -25,7 +25,7 @@ public class KafkaEventPublisher : IEventPublisher, IDisposable
     public KafkaEventPublisher(IConfiguration configuration, ILogger<KafkaEventPublisher> logger)
     {
         _logger = logger;
-        
+
         var kafkaOptions = configuration.GetSection(KafkaOptions.SectionName).Get<KafkaOptions>() ?? new KafkaOptions();
 
         var config = new ProducerConfig

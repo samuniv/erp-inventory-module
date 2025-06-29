@@ -20,7 +20,7 @@ public class AlertProducerService : IAlertProducerService, IDisposable
     public AlertProducerService(IConfiguration configuration, ILogger<AlertProducerService> logger)
     {
         _logger = logger;
-        
+
         var config = new ProducerConfig
         {
             BootstrapServers = configuration.GetConnectionString("Kafka") ?? "localhost:9092",
@@ -58,15 +58,15 @@ public class AlertProducerService : IAlertProducerService, IDisposable
             };
 
             var result = await _producer.ProduceAsync(_lowStockTopic, message);
-            
+
             _logger.LogInformation(
                 "Low stock alert published for item {ItemId} ({ItemName}) to topic {Topic} at offset {Offset}",
                 alertEvent.ItemId, alertEvent.ItemName, _lowStockTopic, result.Offset);
         }
         catch (ProduceException<string, string> ex)
         {
-            _logger.LogError(ex, 
-                "Failed to publish low stock alert for item {ItemId}: {Error}", 
+            _logger.LogError(ex,
+                "Failed to publish low stock alert for item {ItemId}: {Error}",
                 alertEvent.ItemId, ex.Error.Reason);
             throw;
         }
@@ -89,15 +89,15 @@ public class AlertProducerService : IAlertProducerService, IDisposable
             };
 
             var result = await _producer.ProduceAsync(_inventoryUpdatedTopic, message);
-            
+
             _logger.LogInformation(
                 "Inventory updated event published for item {ItemId} ({ItemName}) to topic {Topic} at offset {Offset}",
                 updatedEvent.ItemId, updatedEvent.ItemName, _inventoryUpdatedTopic, result.Offset);
         }
         catch (ProduceException<string, string> ex)
         {
-            _logger.LogError(ex, 
-                "Failed to publish inventory updated event for item {ItemId}: {Error}", 
+            _logger.LogError(ex,
+                "Failed to publish inventory updated event for item {ItemId}: {Error}",
                 updatedEvent.ItemId, ex.Error.Reason);
             throw;
         }

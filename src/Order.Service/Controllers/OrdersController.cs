@@ -50,7 +50,7 @@ public class OrdersController : ControllerBase
 
             var order = await _orderService.CreateOrderAsync(request, cancellationToken);
 
-            _logger.LogInformation("Successfully created order {OrderId} for customer: {CustomerEmail}", 
+            _logger.LogInformation("Successfully created order {OrderId} for customer: {CustomerEmail}",
                 order.Id, request.CustomerEmail);
 
             return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
@@ -58,7 +58,7 @@ public class OrdersController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating order for customer: {CustomerEmail}", request.CustomerEmail);
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "An error occurred while creating the order." });
         }
     }

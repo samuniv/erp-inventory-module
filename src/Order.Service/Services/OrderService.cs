@@ -109,21 +109,21 @@ public class OrderService : IOrderService
             // Publish order created event
             var orderCreatedEvent = EventMapper.ToOrderCreatedEvent(createdOrder);
             var publishResult = await _eventPublisher.PublishAsync(
-                KafkaTopics.OrderCreated, 
-                orderCreatedEvent, 
-                createdOrder.Id.ToString(), 
+                KafkaTopics.OrderCreated,
+                orderCreatedEvent,
+                createdOrder.Id.ToString(),
                 cancellationToken);
 
             if (!publishResult.IsSuccess)
             {
-                _logger.LogWarning("Failed to publish OrderCreatedEvent for order {OrderId}: {Error}", 
+                _logger.LogWarning("Failed to publish OrderCreatedEvent for order {OrderId}: {Error}",
                     createdOrder.Id, publishResult.ErrorMessage);
                 // Note: We don't fail the transaction for event publishing failures
             }
 
             await transaction.CommitAsync(cancellationToken);
 
-            _logger.LogInformation("Successfully created order {OrderId} with order number {OrderNumber}", 
+            _logger.LogInformation("Successfully created order {OrderId} with order number {OrderNumber}",
                 createdOrder.Id, createdOrder.OrderNumber);
 
             return MapToOrderResponse(createdOrder);
@@ -189,13 +189,13 @@ public class OrderService : IOrderService
         {
             var completedEvent = EventMapper.ToOrderCompletedEvent(order);
             await _eventPublisher.PublishAsync(
-                KafkaTopics.OrderCompleted, 
-                completedEvent, 
-                order.Id.ToString(), 
+                KafkaTopics.OrderCompleted,
+                completedEvent,
+                order.Id.ToString(),
                 cancellationToken);
         }
 
-        _logger.LogInformation("Updated order {OrderId} status from {OldStatus} to {NewStatus}", 
+        _logger.LogInformation("Updated order {OrderId} status from {OldStatus} to {NewStatus}",
             id, oldStatus, status);
 
         return MapToOrderResponse(order);
@@ -224,9 +224,9 @@ public class OrderService : IOrderService
         // Publish cancelled event
         var cancelledEvent = EventMapper.ToOrderCancelledEvent(order, reason);
         await _eventPublisher.PublishAsync(
-            KafkaTopics.OrderCancelled, 
-            cancelledEvent, 
-            order.Id.ToString(), 
+            KafkaTopics.OrderCancelled,
+            cancelledEvent,
+            order.Id.ToString(),
             cancellationToken);
 
         _logger.LogInformation("Cancelled order {OrderId} with reason: {Reason}", id, reason);
@@ -239,7 +239,7 @@ public class OrderService : IOrderService
         var today = DateTime.UtcNow.ToString("yyyyMMdd");
         var count = await _context.Orders
             .CountAsync(o => o.OrderNumber.StartsWith($"ORD-{today}"), cancellationToken);
-        
+
         return $"ORD-{today}-{(count + 1):D4}";
     }
 

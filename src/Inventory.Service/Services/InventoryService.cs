@@ -25,8 +25,8 @@ public class InventoryService : IInventoryService
     private readonly ILogger<InventoryService> _logger;
 
     public InventoryService(
-        InventoryDbContext context, 
-        IAlertProducerService alertProducer, 
+        InventoryDbContext context,
+        IAlertProducerService alertProducer,
         ILogger<InventoryService> logger)
     {
         _context = context;
@@ -65,7 +65,7 @@ public class InventoryService : IInventoryService
         // Check if SKU already exists
         var existingItem = await _context.InventoryItems
             .FirstOrDefaultAsync(i => i.Sku == createDto.Sku);
-        
+
         if (existingItem != null)
         {
             throw new InvalidOperationException($"An item with SKU '{createDto.Sku}' already exists.");
@@ -210,7 +210,7 @@ public class InventoryService : IInventoryService
 
         var previousStockLevel = item.StockLevel;
         item.StockLevel += adjustment;
-        
+
         // Ensure stock doesn't go negative
         if (item.StockLevel < 0)
         {
@@ -251,10 +251,10 @@ public class InventoryService : IInventoryService
 
     private async Task PublishLowStockAlert(InventoryItem item)
     {
-        var severity = item.StockLevel == 0 ? AlertSeverity.Critical : 
-                      item.StockLevel <= (item.ReorderThreshold * 0.5) ? AlertSeverity.Warning : 
+        var severity = item.StockLevel == 0 ? AlertSeverity.Critical :
+                      item.StockLevel <= (item.ReorderThreshold * 0.5) ? AlertSeverity.Warning :
                       AlertSeverity.Info;
-        
+
         var alertEvent = new LowStockAlertEvent
         {
             ItemId = item.Id,
@@ -268,7 +268,7 @@ public class InventoryService : IInventoryService
         };
 
         await _alertProducer.PublishLowStockAlertAsync(alertEvent);
-        
+
         _logger.LogWarning(
             "Low stock alert published for {ItemName} (ID: {ItemId}): {CurrentStock} <= {Threshold}",
             item.Name, item.Id, item.StockLevel, item.ReorderThreshold);

@@ -55,7 +55,7 @@ public class InventoryIntegrationTestFixture : IAsyncLifetime
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Testing");
-                
+
                 builder.ConfigureServices(services =>
                 {
                     // Remove the existing DbContext registration
@@ -97,11 +97,11 @@ public class InventoryIntegrationTestFixture : IAsyncLifetime
         // Initialize the database
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
-        
+
         try
         {
             await context.Database.EnsureCreatedAsync();
-            
+
             // Initialize with some basic data if needed
             if (!await context.InventoryItems.AnyAsync())
             {

@@ -31,10 +31,10 @@ public record EventPublishResult
     public int? Partition { get; init; }
     public long? Offset { get; init; }
     public DateTime PublishedAt { get; init; } = DateTime.UtcNow;
-    
+
     public static EventPublishResult Success(string topic, int partition, long offset)
         => new() { IsSuccess = true, Topic = topic, Partition = partition, Offset = offset };
-    
+
     public static EventPublishResult Failure(string errorMessage)
         => new() { IsSuccess = false, ErrorMessage = errorMessage };
 }
@@ -48,10 +48,10 @@ public record EventProcessingResult
     public string? ErrorMessage { get; init; }
     public bool ShouldRetry { get; init; }
     public DateTime ProcessedAt { get; init; } = DateTime.UtcNow;
-    
+
     public static EventProcessingResult Success()
         => new() { IsSuccess = true };
-    
+
     public static EventProcessingResult Failure(string errorMessage, bool shouldRetry = true)
         => new() { IsSuccess = false, ErrorMessage = errorMessage, ShouldRetry = shouldRetry };
 }

@@ -95,7 +95,7 @@ public static class EventMapper
         // Parse the shipping address string (simplified approach)
         var address = order.ShippingAddress;
         var parts = address.Split(',').Select(p => p.Trim()).ToArray();
-        
+
         return new AddressDto
         {
             Street = parts.Length > 0 ? parts[0] : "",

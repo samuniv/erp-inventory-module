@@ -20,7 +20,7 @@ public class InventoryDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            
+
             entity.HasIndex(e => e.Sku).IsUnique();
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.Category);

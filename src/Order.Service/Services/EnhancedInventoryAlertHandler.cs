@@ -30,7 +30,7 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
     {
         try
         {
-            _logger.LogInformation("Processing inventory alert for item {ItemSku}: {AlertType} - Severity: {Severity}", 
+            _logger.LogInformation("Processing inventory alert for item {ItemSku}: {AlertType} - Severity: {Severity}",
                 alertEvent.Sku, alertEvent.AlertType, alertEvent.Severity);
 
             using var scope = _serviceProvider.CreateScope();
@@ -56,7 +56,7 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
                     break;
 
                 default:
-                    _logger.LogWarning("Unknown alert type: {AlertType} for item {ItemSku}", 
+                    _logger.LogWarning("Unknown alert type: {AlertType} for item {ItemSku}",
                         alertEvent.AlertType, alertEvent.Sku);
                     break;
             }
@@ -75,19 +75,19 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
 
     private async Task HandleLowStockAlert(InventoryAlertEvent alertEvent, OrderDbContext context, CancellationToken cancellationToken)
     {
-        _logger.LogWarning("Processing low stock alert for item {ItemSku}: Current {Current}, Threshold {Threshold}", 
+        _logger.LogWarning("Processing low stock alert for item {ItemSku}: Current {Current}, Threshold {Threshold}",
             alertEvent.Sku, alertEvent.CurrentQuantity, alertEvent.MinimumThreshold);
 
         // Find all pending orders that contain this inventory item
         var pendingOrders = await context.Orders
             .Include(o => o.OrderItems)
-            .Where(o => o.Status == OrderStatus.Pending && 
+            .Where(o => o.Status == OrderStatus.Pending &&
                        o.OrderItems.Any(oi => oi.InventoryItemId == int.Parse(alertEvent.InventoryItemId)))
             .ToListAsync(cancellationToken);
 
         if (pendingOrders.Any())
         {
-            _logger.LogInformation("Found {OrderCount} pending orders affected by low stock alert for item {ItemSku}", 
+            _logger.LogInformation("Found {OrderCount} pending orders affected by low stock alert for item {ItemSku}",
                 pendingOrders.Count, alertEvent.Sku);
 
             // Priority-based order processing based on severity
@@ -125,7 +125,7 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
         // Find all pending orders with this item
         var affectedOrders = await context.Orders
             .Include(o => o.OrderItems)
-            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.Confirmed) && 
+            .Where(o => (o.Status == OrderStatus.Pending || o.Status == OrderStatus.Confirmed) &&
                        o.OrderItems.Any(oi => oi.InventoryItemId == int.Parse(alertEvent.InventoryItemId)))
             .ToListAsync(cancellationToken);
 
@@ -137,27 +137,27 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
             order.UpdatedAt = DateTime.UtcNow;
             order.UpdatedBy = "inventory-alert-system";
 
-            _logger.LogWarning("Updated order {OrderId} with out of stock notification for item {ItemSku}", 
+            _logger.LogWarning("Updated order {OrderId} with out of stock notification for item {ItemSku}",
                 order.Id, alertEvent.Sku);
         }
 
         if (affectedOrders.Any())
         {
             await context.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Updated {OrderCount} orders affected by out of stock alert for item {ItemSku}", 
+            _logger.LogInformation("Updated {OrderCount} orders affected by out of stock alert for item {ItemSku}",
                 affectedOrders.Count, alertEvent.Sku);
         }
     }
 
     private async Task HandleRestockAlert(InventoryAlertEvent alertEvent, OrderDbContext context, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Processing restock alert for item {ItemSku}: New quantity {Quantity}", 
+        _logger.LogInformation("Processing restock alert for item {ItemSku}: New quantity {Quantity}",
             alertEvent.Sku, alertEvent.CurrentQuantity);
 
         // Find orders that were delayed due to this item being out of stock
         var delayedOrders = await context.Orders
             .Include(o => o.OrderItems)
-            .Where(o => o.Status == OrderStatus.Pending && 
+            .Where(o => o.Status == OrderStatus.Pending &&
                        o.Notes.Contains($"Item {alertEvent.Sku} is out of stock") &&
                        o.OrderItems.Any(oi => oi.InventoryItemId == int.Parse(alertEvent.InventoryItemId)))
             .ToListAsync(cancellationToken);
@@ -166,37 +166,37 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
         {
             // Update notes to indicate item is back in stock
             var updatedNotes = order.Notes?.Replace(
-                $"Item {alertEvent.Sku} is out of stock", 
+                $"Item {alertEvent.Sku} is out of stock",
                 $"Item {alertEvent.Sku} is back in stock") ?? "";
-            
+
             order.Notes = $"{updatedNotes}\n[INFO] Item {alertEvent.Sku} restocked on {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC. Order can proceed.";
             order.UpdatedAt = DateTime.UtcNow;
             order.UpdatedBy = "inventory-alert-system";
 
-            _logger.LogInformation("Updated order {OrderId} with restock notification for item {ItemSku}", 
+            _logger.LogInformation("Updated order {OrderId} with restock notification for item {ItemSku}",
                 order.Id, alertEvent.Sku);
         }
 
         if (delayedOrders.Any())
         {
             await context.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Updated {OrderCount} orders with restock notification for item {ItemSku}", 
+            _logger.LogInformation("Updated {OrderCount} orders with restock notification for item {ItemSku}",
                 delayedOrders.Count, alertEvent.Sku);
         }
     }
 
     private async Task HandleCriticalStockAlert(InventoryAlertEvent alertEvent, OrderDbContext context, CancellationToken cancellationToken)
     {
-        _logger.LogCritical("Processing CRITICAL stock alert for item {ItemSku}: Current {Current}, Threshold {Threshold}", 
+        _logger.LogCritical("Processing CRITICAL stock alert for item {ItemSku}: Current {Current}, Threshold {Threshold}",
             alertEvent.Sku, alertEvent.CurrentQuantity, alertEvent.MinimumThreshold);
 
         // For critical alerts, immediately pause new orders for this item
         // This would typically involve updating a cache or inventory availability service
-        
+
         // Find all pending orders and mark them with critical priority
         var pendingOrders = await context.Orders
             .Include(o => o.OrderItems)
-            .Where(o => o.Status == OrderStatus.Pending && 
+            .Where(o => o.Status == OrderStatus.Pending &&
                        o.OrderItems.Any(oi => oi.InventoryItemId == int.Parse(alertEvent.InventoryItemId)))
             .ToListAsync(cancellationToken);
 
@@ -213,37 +213,37 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
         }
 
         // Log critical alert for external monitoring systems
-        _logger.LogCritical("CRITICAL STOCK ALERT: Item {ItemSku} requires immediate attention. {OrderCount} orders affected.", 
+        _logger.LogCritical("CRITICAL STOCK ALERT: Item {ItemSku} requires immediate attention. {OrderCount} orders affected.",
             alertEvent.Sku, pendingOrders.Count);
     }
 
     private async Task PrioritizeOrdersByCreationDate(
-        List<Models.Order> orders, 
-        InventoryAlertEvent alertEvent, 
-        OrderDbContext context, 
+        List<Models.Order> orders,
+        InventoryAlertEvent alertEvent,
+        OrderDbContext context,
         CancellationToken cancellationToken)
     {
         var priorityOrders = orders.OrderBy(o => o.CreatedAt).ToList();
-        
+
         for (int i = 0; i < priorityOrders.Count; i++)
         {
             var order = priorityOrders[i];
             var priority = i < 3 ? "HIGH" : "NORMAL"; // First 3 orders get high priority
-            
+
             order.Notes = $"{order.Notes}\n[PRIORITY-{priority}] Due to low stock for item {alertEvent.Sku}, this order has been prioritized based on creation date.";
             order.UpdatedAt = DateTime.UtcNow;
             order.UpdatedBy = "priority-system";
         }
 
         await context.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Prioritized {OrderCount} orders for item {ItemSku} based on creation date", 
+        _logger.LogInformation("Prioritized {OrderCount} orders for item {ItemSku} based on creation date",
             orders.Count, alertEvent.Sku);
     }
 
     private async Task AddDelayNotesToOrders(
-        List<Models.Order> orders, 
-        InventoryAlertEvent alertEvent, 
-        OrderDbContext context, 
+        List<Models.Order> orders,
+        InventoryAlertEvent alertEvent,
+        OrderDbContext context,
         CancellationToken cancellationToken)
     {
         foreach (var order in orders)
@@ -254,13 +254,13 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
         }
 
         await context.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Added delay notices to {OrderCount} orders for item {ItemSku}", 
+        _logger.LogInformation("Added delay notices to {OrderCount} orders for item {ItemSku}",
             orders.Count, alertEvent.Sku);
     }
 
     private async Task EscalateToCriticalAlert(InventoryAlertEvent alertEvent, CancellationToken cancellationToken)
     {
-        _logger.LogCritical("Escalating to CRITICAL alert for item {ItemSku}: Stock below 10% of threshold", 
+        _logger.LogCritical("Escalating to CRITICAL alert for item {ItemSku}: Stock below 10% of threshold",
             alertEvent.Sku);
 
         // In a real system, this might trigger:
@@ -276,8 +276,8 @@ public class EnhancedInventoryAlertHandler : IInventoryAlertHandler
     {
         // This method would typically log to an audit table
         // For now, we'll just use structured logging
-        
-        _logger.LogInformation("Alert processing completed for item {ItemSku}. Event ID: {EventId}, Timestamp: {Timestamp}, Severity: {Severity}", 
+
+        _logger.LogInformation("Alert processing completed for item {ItemSku}. Event ID: {EventId}, Timestamp: {Timestamp}, Severity: {Severity}",
             alertEvent.Sku, alertEvent.EventId, alertEvent.EventTimestamp, alertEvent.Severity);
 
         await Task.CompletedTask;

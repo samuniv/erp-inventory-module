@@ -46,7 +46,7 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
         // Start Kafka consumer to capture the alert
         var alertReceived = new TaskCompletionSource<LowStockAlertEvent>();
         var consumer = _fixture.CreateKafkaConsumer("test-group-create");
-        
+
         var consumerTask = Task.Run(async () =>
         {
             try
@@ -78,14 +78,14 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
         // Assert
         response.EnsureSuccessStatusCode();
         var createdItem = await response.Content.ReadFromJsonAsync<InventoryItemDto>();
-        
+
         Assert.NotNull(createdItem);
         Assert.Equal(createDto.Name, createdItem.Name);
         Assert.Equal(createDto.StockLevel, createdItem.StockLevel);
 
         // Wait for Kafka message
         var alert = await alertReceived.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        
+
         Assert.NotNull(alert);
         Assert.Equal(createdItem.Id, alert.ItemId);
         Assert.Equal(createDto.Name, alert.ItemName);
@@ -135,7 +135,7 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
         // Start Kafka consumer
         var alertReceived = new TaskCompletionSource<LowStockAlertEvent>();
         var consumer = _fixture.CreateKafkaConsumer("test-group-update");
-        
+
         var consumerTask = Task.Run(async () =>
         {
             try
@@ -167,13 +167,13 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
         // Assert
         updateResponse.EnsureSuccessStatusCode();
         var updatedItem = await updateResponse.Content.ReadFromJsonAsync<InventoryItemDto>();
-        
+
         Assert.NotNull(updatedItem);
         Assert.Equal(updateDto.StockLevel, updatedItem.StockLevel);
 
         // Wait for Kafka message
         var alert = await alertReceived.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        
+
         Assert.NotNull(alert);
         Assert.Equal(createdItem.Id, alert.ItemId);
         Assert.Equal(updateDto.StockLevel, alert.CurrentStockLevel);
@@ -188,7 +188,7 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
         // Arrange - Create an item
         var createDto = new CreateInventoryItemDto
         {
-            Name = "Critical Test Widget", 
+            Name = "Critical Test Widget",
             Description = "A widget for testing critical alerts",
             Sku = "TST-CRITICAL-001",
             StockLevel = 15,
@@ -205,7 +205,7 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
         // Start Kafka consumer
         var alertReceived = new TaskCompletionSource<LowStockAlertEvent>();
         var consumer = _fixture.CreateKafkaConsumer("test-group-critical");
-        
+
         var consumerTask = Task.Run(async () =>
         {
             try
@@ -241,7 +241,7 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
 
         // Wait for Kafka message
         var alert = await alertReceived.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        
+
         Assert.NotNull(alert);
         Assert.Equal(createdItem.Id, alert.ItemId);
         Assert.Equal(0, alert.CurrentStockLevel);
@@ -270,7 +270,7 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
             new CreateInventoryItemDto
             {
                 Name = "Normal Stock Item",
-                Sku = "NORMAL-STOCK-001", 
+                Sku = "NORMAL-STOCK-001",
                 StockLevel = 50,
                 ReorderThreshold = 10,
                 UnitPrice = 10.00m,
@@ -285,7 +285,7 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
                 StockLevel = 5,
                 ReorderThreshold = 8,
                 UnitPrice = 10.00m,
-                Unit = "pieces", 
+                Unit = "pieces",
                 Category = "Test Items",
                 SupplierId = 1
             }
@@ -303,10 +303,10 @@ public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrati
         // Assert
         response.EnsureSuccessStatusCode();
         var lowStockItems = await response.Content.ReadFromJsonAsync<List<InventoryItemListDto>>();
-        
+
         Assert.NotNull(lowStockItems);
         Assert.True(lowStockItems.Count >= 2); // At least our 2 low stock items
-        
+
         var lowStockSkus = lowStockItems.Select(i => i.Sku).ToList();
         Assert.Contains("LOW-STOCK-001", lowStockSkus);
         Assert.Contains("LOW-STOCK-002", lowStockSkus);

@@ -21,7 +21,7 @@ public class OrderDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            
+
             entity.HasIndex(e => e.OrderNumber).IsUnique();
             entity.HasIndex(e => e.CustomerEmail);
             entity.HasIndex(e => e.Status);

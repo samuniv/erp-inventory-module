@@ -47,18 +47,18 @@ public class InventoryAlertConsumerService : BackgroundService
                 .SetStatisticsHandler((_, json) => _logger.LogDebug("Kafka consumer statistics: {Statistics}", json))
                 .SetPartitionsAssignedHandler((c, partitions) =>
                 {
-                    _logger.LogInformation("Assigned partitions: [{Partitions}]", 
+                    _logger.LogInformation("Assigned partitions: [{Partitions}]",
                         string.Join(", ", partitions.Select(p => $"{p.Topic}:{p.Partition}")));
                 })
                 .SetPartitionsRevokedHandler((c, partitions) =>
                 {
-                    _logger.LogInformation("Revoked partitions: [{Partitions}]", 
+                    _logger.LogInformation("Revoked partitions: [{Partitions}]",
                         string.Join(", ", partitions.Select(p => $"{p.Topic}:{p.Partition}")));
                 })
                 .Build())
             {
                 _consumer.Subscribe(new[] { KafkaTopics.InventoryAlerts, KafkaTopics.InventoryUpdated });
-                _logger.LogInformation("Subscribed to topics: {Topics}", 
+                _logger.LogInformation("Subscribed to topics: {Topics}",
                     string.Join(", ", new[] { KafkaTopics.InventoryAlerts, KafkaTopics.InventoryUpdated }));
 
                 while (!stoppingToken.IsCancellationRequested)
@@ -66,11 +66,11 @@ public class InventoryAlertConsumerService : BackgroundService
                     try
                     {
                         var consumeResult = _consumer.Consume(stoppingToken);
-                        
+
                         if (consumeResult?.Message != null)
                         {
                             await ProcessMessageAsync(consumeResult, stoppingToken);
-                            
+
                             // Commit the offset after successful processing
                             _consumer.Commit(consumeResult);
                         }
@@ -78,7 +78,7 @@ public class InventoryAlertConsumerService : BackgroundService
                     catch (ConsumeException ex)
                     {
                         _logger.LogError(ex, "Error consuming message: {Error}", ex.Error.Reason);
-                        
+
                         // Wait before retrying
                         await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
                     }
@@ -90,7 +90,7 @@ public class InventoryAlertConsumerService : BackgroundService
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Unexpected error processing Kafka message");
-                        
+
                         // Wait before retrying
                         await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                     }
@@ -115,7 +115,7 @@ public class InventoryAlertConsumerService : BackgroundService
         var partition = consumeResult.Partition;
         var offset = consumeResult.Offset;
 
-        _logger.LogDebug("Processing message from topic {Topic}, partition {Partition}, offset {Offset}", 
+        _logger.LogDebug("Processing message from topic {Topic}, partition {Partition}, offset {Offset}",
             topic, partition, offset);
 
         try
@@ -135,12 +135,12 @@ public class InventoryAlertConsumerService : BackgroundService
                     break;
             }
 
-            _logger.LogDebug("Successfully processed message from topic {Topic}, partition {Partition}, offset {Offset}", 
+            _logger.LogDebug("Successfully processed message from topic {Topic}, partition {Partition}, offset {Offset}",
                 topic, partition, offset);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to process message from topic {Topic}, partition {Partition}, offset {Offset}. Message: {Message}", 
+            _logger.LogError(ex, "Failed to process message from topic {Topic}, partition {Partition}, offset {Offset}. Message: {Message}",
                 topic, partition, offset, message.Value);
             throw;
         }
@@ -161,24 +161,24 @@ public class InventoryAlertConsumerService : BackgroundService
                 return;
             }
 
-            _logger.LogInformation("Processing inventory alert for item {ItemSku}: {Message}", 
+            _logger.LogInformation("Processing inventory alert for item {ItemSku}: {Message}",
                 inventoryAlert.Sku, inventoryAlert.Message);
 
             // Use a scoped service to handle the alert
             using var scope = _serviceProvider.CreateScope();
             var alertHandler = scope.ServiceProvider.GetRequiredService<IInventoryAlertHandler>();
-            
+
             var result = await alertHandler.HandleInventoryAlertAsync(inventoryAlert, cancellationToken);
-            
+
             if (result.IsSuccess)
             {
                 _logger.LogInformation("Successfully processed inventory alert for item {ItemSku}", inventoryAlert.Sku);
             }
             else
             {
-                _logger.LogWarning("Failed to process inventory alert for item {ItemSku}: {Error}", 
+                _logger.LogWarning("Failed to process inventory alert for item {ItemSku}: {Error}",
                     inventoryAlert.Sku, result.ErrorMessage);
-                    
+
                 if (result.ShouldRetry)
                 {
                     throw new InvalidOperationException($"Retryable error processing inventory alert: {result.ErrorMessage}");
@@ -199,7 +199,7 @@ public class InventoryAlertConsumerService : BackgroundService
             // For now, just log the inventory update
             // This could be extended to update local cache or trigger other business logic
             _logger.LogInformation("Received inventory update: {Message}", messageValue);
-            
+
             // Add any specific inventory update processing logic here
             await Task.CompletedTask;
         }
@@ -212,7 +212,7 @@ public class InventoryAlertConsumerService : BackgroundService
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping Inventory Alert Consumer Service");
-        
+
         try
         {
             _consumer?.Close();
@@ -235,7 +235,7 @@ public class InventoryAlertConsumerService : BackgroundService
         {
             _logger.LogError(ex, "Error disposing Kafka consumer");
         }
-        
+
         base.Dispose();
     }
 }
@@ -264,7 +264,7 @@ public class InventoryAlertHandler : IInventoryAlertHandler
     {
         try
         {
-            _logger.LogInformation("Handling inventory alert for item {ItemSku}: {AlertType} - {Message}", 
+            _logger.LogInformation("Handling inventory alert for item {ItemSku}: {AlertType} - {Message}",
                 alertEvent.Sku, alertEvent.AlertType, alertEvent.Message);
 
             // Business logic for handling inventory alerts
@@ -283,7 +283,7 @@ public class InventoryAlertHandler : IInventoryAlertHandler
                     break;
 
                 default:
-                    _logger.LogWarning("Unknown alert type: {AlertType} for item {ItemSku}", 
+                    _logger.LogWarning("Unknown alert type: {AlertType} for item {ItemSku}",
                         alertEvent.AlertType, alertEvent.Sku);
                     break;
             }
@@ -299,7 +299,7 @@ public class InventoryAlertHandler : IInventoryAlertHandler
 
     private async Task HandleLowStockAlert(InventoryAlertEvent alertEvent, CancellationToken cancellationToken)
     {
-        _logger.LogWarning("Low stock alert for item {ItemSku}: Current quantity {CurrentQuantity}, Threshold {Threshold}", 
+        _logger.LogWarning("Low stock alert for item {ItemSku}: Current quantity {CurrentQuantity}, Threshold {Threshold}",
             alertEvent.Sku, alertEvent.CurrentQuantity, alertEvent.MinimumThreshold);
 
         // Implement business logic for low stock alerts
@@ -314,7 +314,7 @@ public class InventoryAlertHandler : IInventoryAlertHandler
 
     private async Task HandleOutOfStockAlert(InventoryAlertEvent alertEvent, CancellationToken cancellationToken)
     {
-        _logger.LogError("Out of stock alert for item {ItemSku}: Current quantity {CurrentQuantity}", 
+        _logger.LogError("Out of stock alert for item {ItemSku}: Current quantity {CurrentQuantity}",
             alertEvent.Sku, alertEvent.CurrentQuantity);
 
         // Implement business logic for out of stock alerts
@@ -329,7 +329,7 @@ public class InventoryAlertHandler : IInventoryAlertHandler
 
     private async Task HandleRestockAlert(InventoryAlertEvent alertEvent, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Restock alert for item {ItemSku}: Current quantity {CurrentQuantity}", 
+        _logger.LogInformation("Restock alert for item {ItemSku}: Current quantity {CurrentQuantity}",
             alertEvent.Sku, alertEvent.CurrentQuantity);
 
         // Implement business logic for restock alerts
