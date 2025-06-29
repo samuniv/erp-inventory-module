@@ -335,7 +335,6 @@ To ensure resilience and graceful degradation, each service will implement the f
 ## 15. Roles & Permissions
 
 - **RBAC Model**
-
   - Roles: Admin, Manager, Clerk
   - JWT claims/scopes map to operations
 
@@ -357,8 +356,6 @@ To ensure resilience and graceful degradation, each service will implement the f
 - **Kafka Schema Contracts:** enforce via Schema Registry (Avro/JSON)
 - **Load/Stress Tests:** k6 or Gatling simulating peak loads (500 orders/min, 1000 RPS)
 - **SLAs:** 95th-pct API latency ≤ 200 ms under test load
-
----
 
 ## Appendix A: Local Setup
 
