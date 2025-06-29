@@ -4,26 +4,93 @@
       {
         "id": 1,
         "title": "Project Scaffolding & Docker Environment Setup",
-        "description": "Establish the foundational project structure, including the Git repository, solution file, and a comprehensive Docker Compose configuration to run all required infrastructure services locally.",
-        "details": "Create a `docker-compose.yml` file to orchestrate containers for PostgreSQL (`postgres:16`), Oracle XE (`gvenzl/oracle-xe:21-slim-faststart`), and Apache Kafka (`confluentinc/cp-kafka:7.6.1` with a Zookeeper dependency). Define networks and volumes for data persistence. Set up the .NET solution (`.sln`) with project folders for `Gateway.API`, `Auth.Service`, `Inventory.Service`, `Order.Service`, and `Supplier.Service`. Initialize a Git repository with a `.gitignore` file for .NET and Angular.",
-        "testStrategy": "Run `docker-compose up -d`. Verify all containers are running and healthy using `docker ps`. Check that ports 5432 (Postgres), 1521 (Oracle), and 9092 (Kafka) are accessible from the host machine.",
-        "priority": "high",
+        "description": "The foundational project structure has been established. This includes the Git repository, .NET solution structure, and a comprehensive Docker Compose configuration for all required infrastructure services. The environment is now ready for microservice development.",
+        "status": "done",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "priority": "high",
+        "details": "The following items have been completed: A `docker-compose.yml` file orchestrating containers for PostgreSQL (`postgres:16`), Oracle XE (`gvenzl/oracle-xe:21-slim-faststart`), and Apache Kafka (`confluentinc/cp-kafka:7.6.1`). A .NET solution (`.sln`) with project folders for `Gateway.API`, `Auth.Service`, `Inventory.Service`, `Order.Service`, and `Supplier.Service`. A Git repository with a `.gitignore` file for .NET and Angular. Database initialization scripts for both PostgreSQL and Oracle. A `README.md` file with setup instructions.",
+        "testStrategy": "Verified that `docker-compose up -d` successfully starts all containers. Confirmed all containers are running and healthy via `docker ps`. Ensured ports 5432 (Postgres), 1521 (Oracle), and 9092 (Kafka) are accessible from the host machine. The environment is confirmed to be ready for development.",
+        "subtasks": [
+          {
+            "id": "sub-1",
+            "description": "Initialize Git repository and create .gitignore for .NET and Angular.",
+            "status": "done"
+          },
+          {
+            "id": "sub-2",
+            "description": "Create .NET solution (.sln) with project directories for all microservices.",
+            "status": "done"
+          },
+          {
+            "id": "sub-3",
+            "description": "Implement docker-compose.yml for PostgreSQL, Oracle XE, Kafka, and Zookeeper.",
+            "status": "done"
+          },
+          {
+            "id": "sub-4",
+            "description": "Create database initialization scripts for both PostgreSQL and Oracle.",
+            "status": "done"
+          },
+          {
+            "id": "sub-5",
+            "description": "Add a project README.md with setup instructions and documentation.",
+            "status": "done"
+          },
+          {
+            "id": "sub-6",
+            "description": "Launch and verify all infrastructure services using Docker Compose.",
+            "status": "done"
+          }
+        ]
       },
       {
         "id": 2,
         "title": "API Gateway (YARP) Implementation",
-        "description": "Implement the API Gateway using YARP to act as the single entry point for the frontend. This includes initial route configuration for all backend services.",
-        "details": "Create a new .NET 9 Minimal API project named `Gateway.API`. Install the `Yarp.ReverseProxy` NuGet package (latest version). Configure `appsettings.json` with initial route and cluster definitions for `auth`, `inventory`, `orders`, and `suppliers`. For example: `\"Routes\": { \"auth-route\": { \"ClusterId\": \"auth-cluster\", \"Match\": { \"Path\": \"/api/auth/{**catch-all}\" } } }`. Implement basic CORS policy to allow requests from the Angular SPA's local development server.",
-        "testStrategy": "Start the Gateway.API project. Make a request to a placeholder route (e.g., `/api/auth/login`). Verify that the gateway attempts to forward the request and returns a 502/503 error (since the service isn't running yet), confirming the routing rule is active.",
-        "priority": "high",
+        "description": "Implemented the API Gateway using YARP to act as the single entry point for the frontend. The gateway is fully configured with routing for all backend services, CORS, health checks, and is containerized.",
+        "status": "done",
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "high",
+        "details": "The implementation consists of a .NET 9 Minimal API project (`Gateway.API`) with the `Yarp.ReverseProxy` package (v2.3.0). Routes are configured in `appsettings.json` to forward requests to backend services: `/api/auth/*` -> `localhost:5006`, `/api/inventory/*` -> `localhost:5007`, `/api/orders/*` -> `localhost:5008`, and `/api/suppliers/*` -> `localhost:5009`. A CORS policy allows requests from the Angular SPA at `http://localhost:4200`. A health check endpoint is available at `/health`, and a Dockerfile has been created for containerization. The gateway runs on port 5010 and its root endpoint returns 'ERP Inventory Module API Gateway - Running'.",
+        "testStrategy": "Validated the implementation by starting the gateway on port 5010. Confirmed the root endpoint returns 'ERP Inventory Module API Gateway - Running'. Verified the `/health` endpoint returns 'Healthy'. Tested routing by making a request to a backend service path (e.g., `/api/auth/login`), which correctly resulted in a 502 Bad Gateway error (as the downstream service was not running), confirming the YARP routing rules are active. CORS configuration is in place for the frontend.",
+        "subtasks": [
+          {
+            "id": "2.1",
+            "description": "Create Gateway.API .NET 9 project with YARP reverse proxy",
+            "status": "done"
+          },
+          {
+            "id": "2.2",
+            "description": "Add YARP package (version 2.3.0)",
+            "status": "done"
+          },
+          {
+            "id": "2.3",
+            "description": "Configure routes in appsettings.json for all services: auth, inventory, orders, suppliers",
+            "status": "done"
+          },
+          {
+            "id": "2.4",
+            "description": "Implement CORS policy for Angular app (http://localhost:4200)",
+            "status": "done"
+          },
+          {
+            "id": "2.5",
+            "description": "Add health checks endpoint (/health)",
+            "status": "done"
+          },
+          {
+            "id": "2.6",
+            "description": "Create Dockerfile for containerization",
+            "status": "done"
+          },
+          {
+            "id": "2.7",
+            "description": "Add project to solution",
+            "status": "done"
+          }
+        ]
       },
       {
         "id": 3,
@@ -35,8 +102,63 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize ASP.NET Core Web API Project and Dependencies",
+            "description": "Create a new ASP.NET Core Web API project. Set up the basic folder structure and install essential NuGet packages for Identity, Entity Framework Core, and JWT Bearer authentication.",
+            "dependencies": [],
+            "details": "Use the `dotnet new webapi` template to create the project. Establish a logical folder structure (e.g., Controllers, Services, Data, Models). Install NuGet packages: `Microsoft.AspNetCore.Identity.EntityFrameworkCore`, `Microsoft.EntityFrameworkCore.Tools`, `Microsoft.AspNetCore.Authentication.JwtBearer`, and a database provider like `Microsoft.EntityFrameworkCore.SqlServer`.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Configure DbContext and Integrate ASP.NET Core Identity",
+            "description": "Set up the application's DbContext to work with ASP.NET Core Identity. Configure the Identity services in the application's service container and create the initial database migration.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create an `ApplicationDbContext` that inherits from `IdentityDbContext`. In `Program.cs`, register the DbContext and configure Identity services using `AddIdentity`. Define the connection string in `appsettings.json`. Run `dotnet ef migrations add InitialIdentitySchema` and `dotnet ef database update` to generate and apply the database schema for Identity tables.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement JWT Generation Service",
+            "description": "Create a dedicated service to handle the creation and signing of JSON Web Tokens (JWT). This service will be used to issue tokens to authenticated users.",
+            "dependencies": [
+              2
+            ],
+            "details": "Define an `ITokenService` interface and its implementation. The service will read JWT configuration (secret key, issuer, audience) from `appsettings.json`. Implement a method that takes a user object, generates claims (like user ID and roles), and creates a signed JWT using `System.IdentityModel.Tokens.Jwt`. Configure JWT Bearer authentication middleware in `Program.cs`.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Registration and Login API Endpoints",
+            "description": "Create an `AuthController` with endpoints for user registration and login. The registration endpoint will handle new user creation, and the login endpoint will authenticate users and return a JWT.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Create an `AuthController` with POST methods for `/register` and `/login`. The register endpoint will use `UserManager.CreateAsync` to add a new user. The login endpoint will validate credentials using `UserManager.CheckPasswordAsync` and, upon success, will call the `ITokenService` to generate and return a valid JWT.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Set Up Integration Tests with Testcontainers",
+            "description": "Create an integration test project to validate the authentication service. Use Testcontainers to spin up an ephemeral database instance for each test run, ensuring isolated and reliable end-to-end testing of the registration and login flows.",
+            "dependencies": [
+              4
+            ],
+            "details": "Create a new xUnit/NUnit test project and add `Microsoft.AspNetCore.Mvc.Testing` and `Testcontainers` NuGet packages. Implement a custom `WebApplicationFactory` to override the database connection string with the one provided by the Testcontainer. Write integration tests that call the `/register` and `/login` endpoints and assert the expected outcomes.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 4,
@@ -63,7 +185,57 @@
           1
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Setup .NET Project with Oracle EF Core Integration",
+            "description": "Initialize a new .NET Web API project. Configure the necessary NuGet packages for Entity Framework Core with an Oracle provider. Set up the DbContext, connection strings, and the Supplier entity model.",
+            "dependencies": [],
+            "details": "Create a new .NET solution and Web API project. Add NuGet packages: Microsoft.EntityFrameworkCore, Oracle.EntityFrameworkCore, and MediatR. Define the 'Supplier' entity class. Configure the 'SupplierDbContext' to connect to an Oracle database. Set up an initial database migration.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement CQRS Queries for Suppliers",
+            "description": "Create the CQRS query models and handlers using MediatR for retrieving supplier data. Implement the 'GetAllSuppliersQuery' and 'GetSupplierByIdQuery'.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define 'GetAllSuppliersQuery' and 'GetSupplierByIdQuery' records. Create corresponding 'GetAllSuppliersQueryHandler' and 'GetSupplierByIdQueryHandler' classes. These handlers will use the 'SupplierDbContext' to fetch data from the Oracle database and return appropriate DTOs.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement CQRS Commands for Suppliers",
+            "description": "Create the CQRS command models and handlers using MediatR for creating, updating, and deleting suppliers. Implement 'CreateSupplierCommand', 'UpdateSupplierCommand', and 'DeleteSupplierCommand'.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define 'CreateSupplierCommand', 'UpdateSupplierCommand', and 'DeleteSupplierCommand' records. Implement their respective handlers ('CreateSupplierCommandHandler', etc.). These handlers will perform the CUD operations on the 'SupplierDbContext' and save changes to the Oracle database.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Develop Supplier API Controller and Endpoints",
+            "description": "Create a new 'SuppliersController' with API endpoints to handle HTTP requests. Wire up the endpoints to send the corresponding CQRS queries and commands to MediatR for processing.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Create a 'SuppliersController.cs' file. Implement GET endpoints for '/api/suppliers' and '/api/suppliers/{id}' that send the 'GetAllSuppliersQuery' and 'GetSupplierByIdQuery'. Implement POST, PUT, and DELETE endpoints that send the 'CreateSupplierCommand', 'UpdateSupplierCommand', and 'DeleteSupplierCommand' respectively.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Write Integration Tests using Testcontainers for Oracle",
+            "description": "Set up an integration test project. Use Testcontainers to spin up an Oracle database instance for testing. Write tests for the API endpoints to verify the entire request-response flow, including database interactions.",
+            "dependencies": [
+              4
+            ],
+            "details": "Create a new xUnit or NUnit test project. Add the 'Testcontainers.Oracle' NuGet package. Configure a test fixture to manage the lifecycle of the Oracle container. Write integration tests for each endpoint (GET, POST, PUT, DELETE) to ensure the CQRS handlers and database logic work correctly in an isolated environment.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 6,
@@ -76,7 +248,55 @@
           1
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Core CRUD API for Inventory Management with Oracle",
+            "description": "Develop the foundational RESTful API endpoints (Create, Read, Update, Delete) for managing inventory items. This includes setting up the project structure, data models, repository layer for Oracle DB interaction, and the core service layer.",
+            "dependencies": [],
+            "details": "Endpoints to implement: POST /api/inventory, GET /api/inventory/{id}, PUT /api/inventory/{id}. Use an ORM like Entity Framework Core or Dapper for Oracle database connectivity. Define the `InventoryItem` entity and corresponding database schema.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Define and Implement Kafka Message Contract for Alerts",
+            "description": "Create a well-defined data contract (e.g., a C# class or Avro schema) for the low-stock alert message that will be published to Kafka. This ensures consistency between the producer and any potential consumers.",
+            "dependencies": [],
+            "details": "Define a `LowStockAlertEvent` class with properties like `ItemId`, `ItemName`, `CurrentStockLevel`, `Timestamp`. Ensure this class is serializable to JSON for transmission over Kafka.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Integrate Kafka Client and Configure Alert Producer",
+            "description": "Add the necessary Kafka client library to the service. Configure the Kafka producer with connection details (bootstrap servers, security settings) and serialization settings for the message contract defined in the previous step.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add the Confluent.Kafka NuGet package. Create a dedicated `AlertProducerService` to encapsulate the producer logic. Configure the Kafka topic name and bootstrap servers in the application's configuration (e.g., appsettings.json).",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Implement Low-Stock Alert Business Logic",
+            "description": "Enhance the inventory update logic to check the stock level after an item is updated. If the stock falls below a predefined threshold, trigger the Kafka producer to publish a low-stock alert message.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "In the service method that handles inventory updates (e.g., `UpdateInventoryItem`), after successfully saving the changes to the Oracle database, compare the new quantity against a configured `LowStockThreshold`. If the quantity is at or below the threshold, invoke the `AlertProducerService` to send the `LowStockAlertEvent`.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Set Up Multi-Container Integration Tests with Testcontainers",
+            "description": "Create integration tests to validate the end-to-end flow. Use Testcontainers to spin up both an Oracle database container and a Kafka broker container concurrently for a realistic test environment.",
+            "dependencies": [
+              4
+            ],
+            "details": "Use the Testcontainers for .NET library. Create a test fixture that starts and manages both an Oracle container (e.g., gvenzl/oracle-xe) and a Kafka container (e.g., confluentinc/cp-kafka). Write a test that calls the update API endpoint to trigger the low-stock condition, then uses a test Kafka consumer to verify that the correct message was published to the alert topic.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 7,
@@ -90,7 +310,69 @@
           6
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Setup Order.Service API Project and Database Schema",
+            "description": "Initialize the ASP.NET Core Web API project for the Order Service. Configure the database context, connection strings, and define the initial database schema for orders and order items using Entity Framework Core.",
+            "dependencies": [],
+            "details": "Create the solution and project structure for Order.Service. Add necessary NuGet packages (e.g., EF Core, Npgsql/SqlServer, Confluent.Kafka). Define Order and OrderItem entities. Set up the DbContext and configure it in Program.cs. Create and apply the initial database migration.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Define Kafka Event Contracts",
+            "description": "Create the data transfer objects (DTOs) or models for the events that will be published and consumed. This includes the `OrderCreatedEvent` (produced) and the `InventoryAlertEvent` (consumed).",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a shared library or a dedicated folder within the service for event contracts. Define C# classes or records for `OrderCreatedEvent` and `InventoryAlertEvent`. Ensure these contracts are designed for JSON serialization and include all necessary fields.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement Order Creation Endpoint with Kafka Producer",
+            "description": "Develop the `POST /api/orders` endpoint. This endpoint will receive order data, save it to the database, and publish an `OrderCreatedEvent` to a Kafka topic.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create an OrdersController. Implement the CreateOrder method which validates the request, saves the order to the database via the DbContext, creates an `OrderCreatedEvent` instance, serializes it, and publishes it to the 'order-created' Kafka topic using a configured Kafka producer client.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Create Kafka Consumer `IHostedService`",
+            "description": "Set up the boilerplate for a background service that will host the Kafka consumer. This involves creating a class that implements `IHostedService` and registering it in the dependency injection container.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a new class, such as `InventoryAlertConsumerService`, that implements the `IHostedService` interface. Implement the `StartAsync` and `StopAsync` methods for managing the consumer lifecycle. Register this service in Program.cs using `AddHostedService<InventoryAlertConsumerService>()`.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Implement Consumer Logic for Inventory Alerts",
+            "description": "Within the `IHostedService`, implement the logic to connect to Kafka, subscribe to the 'inventory-alerts' topic, and process incoming `InventoryAlertEvent` messages.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "In the `StartAsync` method of the consumer service, configure and build a Kafka consumer client. Subscribe to the 'inventory-alerts' topic. Implement a consumption loop that polls for messages, deserializes the message into an `InventoryAlertEvent` object, and executes the required business logic (e.g., logging a warning, updating an order status).",
+            "status": "pending"
+          },
+          {
+            "id": 6,
+            "title": "Write Integration Tests for API/Producer and Consumer",
+            "description": "Create integration tests for both the API endpoint/producer logic and the standalone consumer logic to ensure they function correctly.",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "Create an integration test project. For the API, use `WebApplicationFactory` to test the `POST /api/orders` endpoint and verify that the correct `OrderCreatedEvent` is published to a test Kafka topic. For the consumer, manually publish an `InventoryAlertEvent` to a test topic and assert that the `InventoryAlertConsumerService` processes it as expected.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 8,
@@ -103,7 +385,56 @@
           4
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Angular Project and Integrate Angular Material",
+            "description": "Create a new Angular project using the Angular CLI. Add and configure Angular Material for UI components, including a theme and typography.",
+            "dependencies": [],
+            "details": "Use the command 'ng new <project-name>' to create the initial project structure. Follow up with 'ng add @angular/material' to integrate the Material Design library, selecting a pre-built theme and setting up global typography styles.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Create Main App Shell and Layout Components",
+            "description": "Develop the main application shell (AppComponent) and create reusable layout components like a header, footer, and sidebar using Angular Material components.",
+            "dependencies": [
+              1
+            ],
+            "details": "Generate a main layout component that will serve as the primary container for the application. This component should include a MatToolbar for the header, a MatSidenav for navigation, and a main content area with a <router-outlet>.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement App Routing Module",
+            "description": "Set up the main application routing module. Define routes for public pages (e.g., login, home) and placeholder routes for future protected areas.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a dedicated 'app-routing.module.ts'. Define an array of Routes for public access pages like 'login' and 'home'. Also, define a basic structure for routes that will eventually be protected, pointing to placeholder components.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Build Login Component and Authentication Service",
+            "description": "Create the login page component with a form for user credentials. Implement an injectable authentication service to handle login logic and manage user state.",
+            "dependencies": [
+              3
+            ],
+            "details": "Generate a 'LoginComponent' and use Angular's Reactive Forms to build the login form. Create an 'AuthService' with 'login()' and 'logout()' methods, and use a BehaviorSubject to manage and broadcast the user's authentication status.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Implement AuthGuard and HTTP Interceptor",
+            "description": "Create an AuthGuard to protect routes that require authentication. Implement an HTTP Interceptor to automatically attach authentication tokens to outgoing API requests.",
+            "dependencies": [
+              4
+            ],
+            "details": "Generate an 'AuthGuard' that implements the CanActivate interface, injecting the AuthService to check if a user is logged in before allowing route access. Generate an 'AuthInterceptor' to intercept HTTP requests and add the JWT token to the Authorization header.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 9,
@@ -117,7 +448,45 @@
           8
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Inventory Data Service",
+            "description": "Generate an Angular service to handle all HTTP requests for inventory data. This includes methods for fetching, adding, updating, and deleting inventory items.",
+            "dependencies": [],
+            "details": "Use the Angular CLI to generate a new service named `inventory.service.ts`. Implement methods like `getInventoryItems()`, `addInventoryItem(item)`, `updateInventoryItem(item)`, and `deleteInventoryItem(id)`. Utilize Angular's HttpClient module for communication with the backend API. Initially, you can use mock data with `of()` from RxJS if the API is not yet available.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Build Inventory List Component with MatTable",
+            "description": "Create a component to display the inventory items in a filterable and sortable Angular Material table (MatTable). This component will use the Inventory Data Service to fetch and display the data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Generate a new component `inventory-list.component.ts`. Implement a MatTable with columns for key inventory data (e.g., item name, quantity, price, actions). Add a filter input field that filters the table data source. Inject the `InventoryService` and call its `getInventoryItems()` method in `ngOnInit` to populate the table.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Create Item Form in a MatDialog",
+            "description": "Develop a reactive form for creating and editing inventory items. This form will be encapsulated within a new component and displayed inside an Angular Material Dialog (MatDialog).",
+            "dependencies": [],
+            "details": "Generate a new component `inventory-form-dialog.component.ts`. Use Angular's `FormBuilder` to create a reactive form with fields for item properties (e.g., name, description, quantity) and add appropriate validators (e.g., `Validators.required`). The component will receive data via `MAT_DIALOG_DATA` for editing existing items and will be configured to be opened via the `MatDialog` service.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Integrate Full CRUD Functionality",
+            "description": "Connect the list component and the form dialog to perform full Create, Read, Update, and Delete (CRUD) operations. This involves handling user actions like clicking 'Add', 'Edit', or 'Delete' buttons.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "In the `inventory-list.component.ts`, add buttons for 'Add New Item', 'Edit', and 'Delete' in the table. The 'Add' and 'Edit' buttons will open the `InventoryFormDialogComponent` using the `MatDialog` service. On form submission from the dialog, call the appropriate `InventoryService` method (`addInventoryItem` or `updateInventoryItem`). The 'Delete' button will call the `deleteInventoryItem` service method. Ensure the table data is refreshed after each successful operation.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 10,
@@ -131,7 +500,45 @@
           8
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create SupplierService for API Communication",
+            "description": "Develop an Angular service (`SupplierService`) to handle all HTTP requests to the supplier API endpoints. This service will manage creating, reading, updating, and deleting supplier data.",
+            "dependencies": [],
+            "details": "Define the Supplier model/interface. Implement methods using Angular's HttpClient for getSuppliers(), createSupplier(supplier), updateSupplier(supplier), and deleteSupplier(id). Ensure proper error handling is in place for all API calls.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Build Supplier List Component with MatTable and Search",
+            "description": "Create a new component to display a list of suppliers using Angular Material's `MatTable`. This component will feature sorting, pagination, and a search/filter input field.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use the SupplierService to fetch and display supplier data in a MatTable. Set up MatTableDataSource with sorting and pagination. Implement a text input that filters the table data based on user input.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Create Supplier Reactive Form in a MatDialog",
+            "description": "Develop a component containing a reactive form for creating and editing supplier details. This form will be presented to the user inside an Angular Material `MatDialog`.",
+            "dependencies": [],
+            "details": "Use Angular's FormBuilder to create the form with fields for supplier name, contact person, email, phone, and address. Implement appropriate validators for each field. The component should be configured to run within a MatDialog.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Integrate Create, Update, and Delete Actions",
+            "description": "Wire up the UI elements in the supplier list component to perform CRUD operations. This includes opening the dialog for creating/editing and handling delete actions.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Add an 'Add Supplier' button to the list component that opens the form dialog. Add 'Edit' and 'Delete' buttons to each row in the MatTable. The 'Edit' button should open the dialog pre-filled with the selected supplier's data. The 'Delete' button should prompt for confirmation before calling the delete method in the SupplierService. After any action, the table should refresh to show the latest data.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 11,
@@ -146,7 +553,48 @@
           8
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Setup MatStepper for Order Wizard",
+            "description": "Integrate the Angular Material MatStepper component to create the basic structure for the multi-step order wizard. This includes importing necessary modules and setting up the main component with placeholder steps.",
+            "dependencies": [],
+            "details": "Import MatStepperModule and MatButtonModule into the OrderModule. Create a new OrderWizardComponent and add a <mat-horizontal-stepper> to its template. Define three initial <mat-step> elements for 'Customer Info', 'Item Selection', and 'Review & Submit'.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Create Order State Management Service",
+            "description": "Develop an injectable Angular service to manage and persist the order data across the different steps of the MatStepper. This service will act as the single source of truth for the order form.",
+            "dependencies": [
+              1
+            ],
+            "details": "Generate an 'OrderStateService' using the Angular CLI. Implement a BehaviorSubject to hold the order data model. Create public methods like 'updateCustomerInfo(data)', 'updateItems(data)', and an observable 'orderState$' to allow components to subscribe to state changes.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Build Individual Form Steps",
+            "description": "Develop the reactive forms and UI for each step of the wizard: Customer Information, Item Selection, and the final Review screen. Each step component will interact with the OrderStateService to read and write data.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create separate components for each step (e.g., CustomerInfoStepComponent, ItemSelectionStepComponent). Each component will define a FormGroup for its fields. On form value changes, call the appropriate method in OrderStateService to update the shared state. The Review step will subscribe to the service to display a summary.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Implement Final Submission Logic",
+            "description": "Add the final submission functionality to the last step of the wizard. This involves gathering the complete order data from the state service, performing final validation, and sending the data to the backend API.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "In the review step component, add a 'Submit' button. The button's click handler will retrieve the complete order object from the OrderStateService. It will then make an HTTP POST request to the backend API endpoint. Implement logic to handle both successful submission and potential errors.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 12,
@@ -162,7 +610,47 @@
           7
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Polly Policies for HTTP Clients",
+            "description": "Implement and configure Polly retry and circuit-breaker policies for all outgoing HTTP client calls across all microservices using IHttpClientFactory.",
+            "dependencies": [],
+            "details": "Define standard policies for transient HTTP errors (e.g., 5xx, 408) with exponential backoff for retries and a circuit-breaker policy that breaks after a configured number of consecutive failures. Apply these policies centrally to ensure consistency.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Wrap Database and Kafka Calls with Polly Policies",
+            "description": "Create and apply explicit Polly policies to wrap all database operations (e.g., EF Core SaveChanges) and Kafka producer calls to handle transient connectivity or broker issues.",
+            "dependencies": [
+              1
+            ],
+            "details": "Identify specific exceptions related to database transient faults and Kafka broker unavailability. Create dedicated Polly policies to handle these specific failure scenarios, separate from the HTTP policies.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Add Structured Logging to Resilience Policies",
+            "description": "Enhance all configured Polly policies (for HTTP, DB, and Kafka) with structured logging to provide visibility into policy execution, such as retries and circuit breaks.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Use the onRetry, onBreak, and onReset delegates within Polly policies to log critical information. Logs should include the service, the exception, the retry attempt number, and the state of the circuit breaker. This is essential for monitoring and debugging.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Create Integration Tests to Verify Resilience",
+            "description": "Develop a suite of integration tests that simulate various failure scenarios to confirm that the implemented Polly policies are triggered correctly and behave as expected.",
+            "dependencies": [
+              3
+            ],
+            "details": "Use mocking frameworks or tools like a mock server to simulate downstream service failures, database connection timeouts, and Kafka broker unavailability. Write tests to assert that retries are attempted, circuits are broken, and the system recovers correctly once the dependency is restored.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 13,
@@ -178,7 +666,47 @@
           7
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Reusable xUnit Fixtures for Service Containers",
+            "description": "Create base classes or xUnit fixtures for managing the lifecycle of Docker containers for PostgreSQL, Oracle, and Kafka. This will provide a standardized way to start, stop, and configure these services for integration tests.",
+            "dependencies": [],
+            "details": "Implement fixtures for PostgreSQL, Oracle, and Kafka using a library like Testcontainers. Ensure fixtures handle connection string generation and automatic container cleanup.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Refactor Existing Integration Tests to Use New Fixtures",
+            "description": "Update the current suite of integration tests to inherit from or utilize the newly created container fixtures. This will reduce code duplication and improve the reliability and maintainability of the tests.",
+            "dependencies": [
+              1
+            ],
+            "details": "Identify all existing tests that manually manage service containers. Replace manual setup/teardown logic with the new fixtures. Verify that all refactored tests pass and behave identically to their original versions.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement New End-to-End Cross-Service Interaction Tests",
+            "description": "Write new integration tests that validate complex workflows spanning multiple services. These tests will use combinations of the new fixtures to simulate real-world scenarios, such as a message flowing from a service through Kafka to another service that writes to a database.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define key end-to-end user or system flows to be tested. Write tests that compose multiple container fixtures (e.g., a service, Kafka, and PostgreSQL). Validate data consistency and correct behavior across the entire flow.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Integrate Full Test Suite into CI Pipeline",
+            "description": "Configure the Continuous Integration (CI) pipeline to execute the complete integration and end-to-end test suite automatically on every commit or pull request. Ensure the pipeline can handle the resource requirements of running multiple containers.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Modify the CI configuration file to add a new testing stage. Ensure the CI runner environment has Docker installed. Add steps to build the services and execute the xUnit test runner. Configure test result reporting.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 14,
@@ -194,7 +722,45 @@
           7
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate Serilog for Structured Logging",
+            "description": "Implement Serilog across all microservices to establish a structured logging foundation. Configure sinks for both local development (console) and a centralized logging system.",
+            "dependencies": [],
+            "details": "Add the necessary Serilog NuGet packages to each service project. Configure the logger in Program.cs, ensuring logs are enriched with contextual information like CorrelationID. Set up sinks for console output and a production-ready aggregator like Seq or an ELK stack.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Configure OpenTelemetry for Tracing and Metrics",
+            "description": "Set up OpenTelemetry in all services to enable distributed tracing and the collection of key application metrics. Configure exporters to send this data to an observability backend.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate OpenTelemetry SDKs into each service. Add instrumentation for ASP.NET Core, HttpClient, and other relevant libraries. Configure the tracer provider and meter provider to export data via OTLP to a backend like Jaeger (for traces) and Prometheus (for metrics).",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement Health Check Endpoints",
+            "description": "Create health check endpoints for each microservice that report on the service's status and the health of its critical dependencies, such as databases and message brokers (Kafka).",
+            "dependencies": [],
+            "details": "Use the built-in ASP.NET Core Health Checks feature. Add checks for each service's dependencies, including database connectivity (e.g., using HealthChecks.NpgSql) and Kafka broker availability (e.g., using HealthChecks.Kafka). Expose the results via a standardized endpoint like '/health'.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Verify and Validate Observability Setup",
+            "description": "Confirm that all observability components are functioning correctly by actively scraping metrics, querying logs, viewing traces, and hitting the health endpoints.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Configure a Prometheus instance to scrape the '/metrics' endpoint exposed by OpenTelemetry. Use a tool like curl or Postman to poll the '/health' endpoint of each service and inspect the response. Generate a test transaction that spans multiple services and verify the complete, correlated trace appears in Jaeger. Check the centralized logging system to confirm structured logs are being ingested correctly.",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 15,
@@ -208,12 +774,50 @@
           14
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Frontend Angular CI Workflow",
+            "description": "Set up a CI workflow for the Angular frontend application. This workflow should include steps for installing dependencies, linting the code, running unit tests, and creating a production build.",
+            "dependencies": [],
+            "details": "The workflow will be defined in a YAML file (e.g., in the .github/workflows directory). It will need to use a Node.js environment, run `npm install`, execute `ng lint`, run `ng test --watch=false --browsers=ChromeHeadless`, and finally perform a production build with `ng build --configuration=production`.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Create Backend .NET CI Workflow (Build & Unit Test)",
+            "description": "Establish a CI workflow for the .NET backend application. This initial workflow will focus on building the solution and running the fast-executing unit tests.",
+            "dependencies": [],
+            "details": "Define a YAML workflow file that uses the .NET SDK. It should include steps to restore NuGet packages (`dotnet restore`), build the solution (`dotnet build --configuration Release`), and run all unit test projects, excluding integration tests (`dotnet test --filter 'Category!=Integration'`).",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Enhance Backend Workflow for Testcontainers Integration Tests",
+            "description": "Modify the .NET backend workflow to support running integration tests that use Testcontainers. This requires configuring a Docker environment on the CI runner.",
+            "dependencies": [
+              2
+            ],
+            "details": "Update the .NET CI workflow to ensure Docker is available and running on the CI agent. Add a dedicated job or step to execute the integration tests (`dotnet test --filter 'Category=Integration'`). This is a high-complexity task due to the need to correctly configure the runner environment to support Docker for Testcontainers.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Configure Pipeline Triggers and Branch Protection Rules",
+            "description": "Finalize the CI setup by configuring the triggers for all workflows and implementing branch protection rules to enforce quality gates before merging code.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Set up the workflows to trigger on pull requests targeting the `main` and `develop` branches. Configure branch protection rules in the repository settings to require the successful completion of both the Angular and the full .NET (including integration tests) workflows before a pull request can be merged.",
+            "status": "pending"
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-29T13:50:42.808Z",
+      "updated": "2025-06-29T15:32:08.198Z",
       "description": "Tasks for master context"
     }
   }

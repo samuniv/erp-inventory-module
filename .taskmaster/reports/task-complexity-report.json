@@ -1,12 +1,12 @@
 {
 	"meta": {
-		"generatedAt": "2025-06-29T13:52:04.682Z",
-		"tasksAnalyzed": 15,
+		"generatedAt": "2025-06-29T14:24:12.059Z",
+		"tasksAnalyzed": 13,
 		"totalTasks": 15,
 		"analysisCount": 15,
 		"thresholdScore": 5,
 		"projectName": "Taskmaster",
-		"usedResearch": true
+		"usedResearch": false
 	},
 	"complexityAnalysis": [
 		{
@@ -28,106 +28,106 @@
 		{
 			"taskId": 3,
 			"taskTitle": "Auth.Service Implementation",
-			"complexityScore": 8,
+			"complexityScore": 7,
 			"recommendedSubtasks": 5,
-			"expansionPrompt": "Decompose the 'Auth.Service Implementation' task into subtasks for: 1. Project setup with EF Core and PostgreSQL connection. 2. Implementing the user registration endpoint. 3. Implementing the login endpoint with JWT generation. 4. Implementing the token refresh endpoint. 5. Implementing the password reset endpoint.",
-			"reasoning": "This is a feature-rich service with several distinct responsibilities: database integration, user registration, login/token generation, token refresh, and password reset. Each endpoint represents a significant piece of work."
+			"expansionPrompt": "Break down the 'Auth.Service Implementation' task into subtasks covering project setup, database integration with Identity, endpoint implementation for registration and login, JWT generation logic, and setting up integration tests with Testcontainers.",
+			"reasoning": "The task involves multiple distinct components: API setup, Identity configuration, database migration, JWT logic, and endpoint implementation. The complexity is high due to the security-critical nature and the integration of .NET Identity, which has a steep learning curve."
 		},
 		{
 			"taskId": 4,
 			"taskTitle": "Integrate JWT Authentication into API Gateway",
-			"complexityScore": 5,
-			"recommendedSubtasks": 2,
-			"expansionPrompt": "Break down the 'Integrate JWT Authentication into API Gateway' task into two subtasks: 1. Configure the JWT Bearer authentication handler in `Gateway.API` to validate tokens from `Auth.Service`. 2. Apply a global authorization policy to the YARP configuration to protect all downstream routes except for the authentication endpoints.",
-			"reasoning": "The task has two main parts: configuring the JWT bearer authentication handler to validate tokens and then applying the authorization policy to the YARP routes. These are distinct configuration steps."
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the 'Integrate JWT Authentication into API Gateway' task into subtasks for adding JWT Bearer services, configuring the authentication handler to validate tokens from Auth.Service, and applying a global authorization policy to YARP routes.",
+			"reasoning": "This is a focused configuration task. The complexity is moderate because it requires precise coordination with the Auth.Service, but the code changes are minimal. It can be broken into configuring the service, applying the policy, and testing."
 		},
 		{
 			"taskId": 5,
 			"taskTitle": "Supplier.Service CRUD API Implementation",
 			"complexityScore": 6,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Expand the 'Supplier.Service CRUD API' task into subtasks based on the CQRS pattern: 1. Set up the project with EF Core, Oracle provider, and MediatR. 2. Implement all Command handlers (Create, Update, Delete). 3. Implement all Query handlers (Get all, Get by ID). 4. Implement the database initializer for seeding data.",
-			"reasoning": "This is a standard CRUD service, but the use of Oracle, CQRS/MediatR, and Testcontainers adds moderate complexity. The CQRS pattern provides a natural way to split the work into commands and queries."
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the 'Supplier.Service CRUD API' task into subtasks for project setup with Oracle EF Core, implementing CQRS queries (GetAll, GetById), implementing CQRS commands (Create, Update, Delete), creating the API endpoints to handle these requests, and writing integration tests with Testcontainers for Oracle.",
+			"reasoning": "The task combines standard API development with the CQRS pattern (MediatR) and a less common database (Oracle). This adds a layer of abstraction and setup complexity compared to a basic CRUD service, justifying a moderate score."
 		},
 		{
 			"taskId": 6,
 			"taskTitle": "Inventory.Service API & Kafka Alert Publisher",
-			"complexityScore": 7,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Decompose the 'Inventory.Service API & Kafka Alert Publisher' task into subtasks for: 1. Implementing the basic CRUD endpoints for inventory items using EF Core and Oracle. 2. Integrating the Confluent.Kafka client and creating a Kafka producer service. 3. Implementing the logic to publish a message to the `inventory.alerts` topic when stock is low. 4. Implementing the database initializer for seeding data.",
-			"reasoning": "The task has two major functional areas: the standard CRUD API for inventory items and the event publishing logic to Kafka. These should be developed and tested separately."
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the 'Inventory.Service API & Kafka Alert Publisher' task into subtasks for implementing the core CRUD API with Oracle, integrating the Kafka client and configuring the producer, adding the business logic to check stock levels and trigger publishing, creating the Kafka message contract, and setting up multi-container integration tests for Oracle and Kafka.",
+			"reasoning": "High complexity due to combining a standard CRUD API with event-driven architecture (Kafka producer). The testing strategy is also complex, requiring two separate Testcontainers (Oracle and Kafka) to run concurrently."
 		},
 		{
 			"taskId": 7,
 			"taskTitle": "Order.Service API & Kafka Event Handling",
 			"complexityScore": 9,
-			"recommendedSubtasks": 5,
-			"expansionPrompt": "Break down the 'Order.Service API & Kafka Event Handling' task into subtasks for: 1. Implementing the core Order API endpoints with EF Core and PostgreSQL. 2. Implementing the Kafka producer to publish an `order.created` event. 3. Creating the `IHostedService` background worker for the Kafka consumer. 4. Implementing the consumer logic to listen to `inventory.alerts` and update orders. 5. Implementing the database initializer for seeding data.",
-			"reasoning": "This service is highly complex, acting as an API, a Kafka producer, and a Kafka consumer via a background service. Each of these roles is a significant and distinct piece of functionality."
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the 'Order.Service API & Kafka Event Handling' task into subtasks for: 1. API and DB setup. 2. Implementing the order creation endpoint with Kafka publishing. 3. Creating the `IHostedService` for the Kafka consumer. 4. Implementing the consumer logic to process inventory alerts. 5. Defining event contracts for both produced and consumed messages. 6. Writing integration tests for both the API/producer and the consumer logic.",
+			"reasoning": "This task is highly complex as it involves three major responsibilities: a web API, a Kafka producer, and a Kafka consumer running as a background service. Each of these is a substantial piece of work with its own testing requirements."
 		},
 		{
 			"taskId": 8,
 			"taskTitle": "Angular SPA Foundation: Shell, Routing, & Auth",
-			"complexityScore": 8,
+			"complexityScore": 7,
 			"recommendedSubtasks": 5,
-			"expansionPrompt": "Expand the 'Angular SPA Foundation' task into subtasks for: 1. Initializing the Angular project and integrating Angular Material. 2. Creating the main application shell component with toolbar and sidenav. 3. Configuring the AppRoutingModule with all primary routes. 4. Implementing the `AuthService` and the `LoginComponent` with its reactive form. 5. Implementing the `AuthGuard` and the JWT `HttpInterceptor`.",
-			"reasoning": "This foundational task involves several large, independent pieces of work: initial project setup, creating the main app layout, defining all routes, building the authentication service, and implementing the UI/UX for login and route protection."
+			"expansionPrompt": "Break down the 'Angular SPA Foundation' task into subtasks for project and Material setup, creating the main app shell and layout, implementing the routing module with public and protected routes, building the login component and authentication service, and implementing the AuthGuard and HTTP Interceptor.",
+			"reasoning": "This is a foundational frontend task. The complexity comes from integrating several core Angular features (Services, Routing, Guards, Interceptors) to create a robust authentication flow, which is critical for the entire application."
 		},
 		{
 			"taskId": 9,
 			"taskTitle": "Angular Inventory Module: List, Detail, & Forms",
 			"complexityScore": 6,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Decompose the 'Angular Inventory Module' task into subtasks for: 1. Creating the `InventoryService` to handle API calls. 2. Building the inventory list component using `MatTable` with filtering capabilities. 3. Creating the create/edit inventory item component using a reactive form inside a `MatDialog`.",
-			"reasoning": "This is a standard but non-trivial frontend feature. It can be broken down into the data access layer (`InventoryService`), the main list/display component (`MatTable`), and the create/edit functionality (form in a `MatDialog`)."
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the 'Angular Inventory Module' task into subtasks for creating the data service to fetch inventory data, building the list component with a filterable MatTable, creating the reactive form for creating/editing items within a MatDialog, and wiring up the full CRUD functionality.",
+			"reasoning": "This is a standard feature development task. The complexity lies in integrating multiple components (table, dialog, form) and a service. It's a self-contained unit of work but involves several moving parts within the Angular framework."
 		},
 		{
 			"taskId": 10,
 			"taskTitle": "Angular Supplier Module: Management via Tables & Dialogs",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down the 'Angular Supplier Module' task into subtasks for: 1. Creating the `SupplierService` for API communication. 2. Building the supplier list component using `MatTable` with search. 3. Creating the create/edit supplier component using a reactive form within a `MatDialog`.",
-			"reasoning": "This task is structurally identical to the Inventory module. The complexity is slightly lower as the development patterns will have already been established, but it still requires distinct subtasks for the service, list, and form components."
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the 'Angular Supplier Module' task into subtasks for creating the SupplierService for API communication, building the supplier list component using MatTable with search, creating the supplier reactive form inside a MatDialog, and integrating the create, update, and delete actions.",
+			"reasoning": "This task is functionally identical to the Inventory module (Task 9) but for a different domain. The complexity and breakdown are therefore the same: service layer, list view, form/dialog, and action integration."
 		},
 		{
 			"taskId": 11,
 			"taskTitle": "Angular Order Module: Multi-Step Creation Wizard",
-			"complexityScore": 7,
+			"complexityScore": 8,
 			"recommendedSubtasks": 4,
-			"expansionPrompt": "Expand the 'Angular Order Module' task into subtasks for: 1. Creating the main order wizard component using `MatStepper`. 2. Implementing Step 1 (Customer/Date selection). 3. Implementing Step 2 (Adding items from a searchable list). 4. Implementing Step 3 (Review and Submit) and the service logic to post the final order.",
-			"reasoning": "A multi-step wizard is more complex than a standard CRUD form. It's naturally decomposable by step, with each step having its own UI and logic. A dedicated service to manage state across steps is also a distinct piece of work."
+			"expansionPrompt": "Break down the 'Angular Order Module' task into subtasks for setting up the MatStepper component, creating a state management service for the order wizard, building each step of the form (customer info, item selection, review), and implementing the final submission logic.",
+			"reasoning": "The use of a multi-step wizard with `MatStepper` introduces significant state management complexity that doesn't exist in a simple CRUD form. Managing state across steps is a non-trivial challenge, justifying a high complexity score."
 		},
 		{
 			"taskId": 12,
 			"taskTitle": "Implement Backend Resilience Patterns (Polly)",
-			"complexityScore": 7,
+			"complexityScore": 8,
 			"recommendedSubtasks": 4,
-			"expansionPrompt": "Decompose the 'Implement Backend Resilience Patterns' task into subtasks for applying Polly policies to: 1. The `Auth.Service`. 2. The `Supplier.Service`. 3. The `Inventory.Service`. 4. The `Order.Service`. Each subtask should include retry and circuit breaker policies for relevant external calls.",
-			"reasoning": "This is a cross-cutting concern that needs to be applied to each microservice individually. Creating a subtask for each service ensures the work is tracked and implemented consistently everywhere."
+			"expansionPrompt": "Break down the 'Implement Backend Resilience Patterns' task into subtasks for configuring Polly retry/circuit-breaker policies for HTTP clients in all services, wrapping database and Kafka calls with explicit Polly policies, adding logging to policies for visibility, and creating integration tests to simulate failures and verify policy execution.",
+			"reasoning": "High complexity arises from this being a cross-cutting concern affecting all services and different types of I/O (HTTP, DB, Kafka). Testing resilience policies correctly by simulating failures is also a significant and difficult part of the task."
 		},
 		{
 			"taskId": 13,
 			"taskTitle": "Backend Integration Testing with Testcontainers",
-			"complexityScore": 8,
+			"complexityScore": 7,
 			"recommendedSubtasks": 4,
-			"expansionPrompt": "Break down the 'Backend Integration Testing with Testcontainers' task into subtasks for creating a full integration test suite for: 1. The `Auth.Service` using `Testcontainers.PostgreSql`. 2. The `Supplier.Service` using `Testcontainers.Oracle`. 3. The `Inventory.Service` using `Testcontainers.Oracle` and `Testcontainers.Kafka`. 4. The `Order.Service` using `Testcontainers.PostgreSql` and `Testcontainers.Kafka`.",
-			"reasoning": "Writing reliable integration tests with real infrastructure dependencies is complex. This practice must be applied to each service, so a subtask per service ensures comprehensive test coverage."
+			"expansionPrompt": "Break down the 'Backend Integration Testing' task into subtasks for creating reusable xUnit fixtures or base classes for each container type (PostgreSQL, Oracle, Kafka), refactoring existing tests to use these fixtures, writing new end-to-end tests that validate cross-service interactions, and integrating the full test suite into the CI pipeline.",
+			"reasoning": "The complexity is not in writing a single test, but in building a robust, reusable, and reliable integration testing framework for all services. This involves creating abstractions (fixtures/base classes) and writing more complex multi-container tests."
 		},
 		{
 			"taskId": 14,
 			"taskTitle": "Observability & Health Checks Implementation",
 			"complexityScore": 7,
 			"recommendedSubtasks": 4,
-			"expansionPrompt": "Expand the 'Observability & Health Checks' task into subtasks for implementing the full observability stack (Serilog, OpenTelemetry, Health Checks) in: 1. The `Auth.Service`. 2. The `Supplier.Service`. 3. The `Inventory.Service`. 4. The `Order.Service`.",
-			"reasoning": "This is a cross-cutting concern that requires careful configuration in each microservice. A subtask per service ensures consistent setup of logging, metrics, tracing, and health checks."
+			"expansionPrompt": "Break down the 'Observability & Health Checks' task into subtasks for: 1. Integrating Serilog for structured logging in all services. 2. Configuring OpenTelemetry for distributed tracing and metrics export. 3. Implementing health checks for each service and its dependencies (DB, Kafka). 4. Verifying the setup by scraping metrics and checking health endpoints.",
+			"reasoning": "This is a complex cross-cutting concern involving the integration of multiple distinct technologies (Serilog, OpenTelemetry, HealthChecks) across all microservices. Each technology requires its own setup, configuration, and verification."
 		},
 		{
 			"taskId": 15,
 			"taskTitle": "CI/CD Pipeline Setup with GitHub Actions",
 			"complexityScore": 8,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Decompose the 'CI/CD Pipeline Setup' task into subtasks for: 1. Creating the backend workflow (`dotnet.yml`) to build, test (including integration tests), and publish all .NET services. 2. Creating the frontend workflow (`angular.yml`) to build, lint, and test the Angular SPA. 3. Configuring workflow triggers and required repository secrets.",
-			"reasoning": "CI/CD for a microservices and SPA architecture is complex. The task has two very distinct parts: the .NET backend pipeline and the Angular frontend pipeline, which use different tools and steps. A third subtask for configuration is also logical."
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the 'CI/CD Pipeline Setup' task into subtasks for creating the frontend Angular workflow (install, lint, test, build), creating the backend .NET workflow (build, unit test), configuring the backend workflow to support Docker for running Testcontainers integration tests, and setting up triggers and branch protection rules.",
+			"reasoning": "The complexity is high due to the requirement of running Testcontainers-based integration tests within a CI environment, which can be difficult to configure correctly on CI runners. This requires significant DevOps expertise beyond typical application code."
 		}
 	]
 }

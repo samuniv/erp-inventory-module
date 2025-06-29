@@ -1,0 +1,229 @@
+version: "3.8"
+
+networks:
+  erp-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  oracle_data:
+  kafka_data:
+  zookeeper_data:
+
+services:
+  # PostgreSQL Database for Auth and Order services
+  postgres:
+    image: postgres:16
+    container_name: erp-postgres
+    environment:
+      POSTGRES_DB: erp_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Oracle XE Database for Inventory and Supplier services
+  oracle:
+    image: gvenzl/oracle-xe:21-slim-faststart
+    container_name: erp-oracle
+    environment:
+      ORACLE_PASSWORD: Oracle123!
+      ORACLE_DATABASE: ERPDB
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+      - ./scripts/init-oracle.sql:/container-entrypoint-initdb.d/init-oracle.sql
+    networks:
+      - erp-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sqlplus -s sys/Oracle123!@localhost:1521/XE as sysdba <<< 'SELECT 1 FROM DUAL;'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: erp-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Apache Kafka for async messaging
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: erp-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - erp-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:9092",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Gateway API Service
+  gateway-api:
+    build:
+      context: ./src/Gateway.API
+      dockerfile: Dockerfile
+    container_name: erp-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=erp_auth;Username=postgres;Password=postgres123
+      - Kafka__BootstrapServers=kafka:29092
+      - Services__Auth=http://auth-service:80
+      - Services__Inventory=http://inventory-service:80
+      - Services__Order=http://order-service:80
+      - Services__Supplier=http://supplier-service:80
+    ports:
+      - "5010:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - erp-network
+    profiles:
+      - services
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./src/Auth.Service
+      dockerfile: Dockerfile
+    container_name: erp-auth-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=erp_auth;Username=postgres;Password=postgres123
+      - Jwt__Key=MyVeryLongAndSecureKeyForJWTTokenGeneration123456
+      - Jwt__Issuer=ERPInventoryModule
+      - Jwt__Audience=ERPInventoryModule
+    ports:
+      - "5006:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - erp-network
+    profiles:
+      - services
+
+  # Inventory Service
+  inventory-service:
+    build:
+      context: ./src/Inventory.Service
+      dockerfile: Dockerfile
+    container_name: erp-inventory-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Data Source=oracle:1521/XE;User Id=INVENTORY;Password=Oracle123!;
+      - Kafka__BootstrapServers=kafka:29092
+    ports:
+      - "5007:80"
+    depends_on:
+      oracle:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - erp-network
+    profiles:
+      - services
+
+  # Order Service
+  order-service:
+    build:
+      context: ./src/Order.Service
+      dockerfile: Dockerfile
+    container_name: erp-order-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=erp_orders;Username=postgres;Password=postgres123
+      - Kafka__BootstrapServers=kafka:29092
+      - Services__Inventory=http://inventory-service:80
+    ports:
+      - "5008:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - erp-network
+    profiles:
+      - services
+
+  # Supplier Service
+  supplier-service:
+    build:
+      context: ./src/Supplier.Service
+      dockerfile: Dockerfile
+    container_name: erp-supplier-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Data Source=oracle:1521/XE;User Id=SUPPLIER;Password=Oracle123!;
+    ports:
+      - "5009:80"
+    depends_on:
+      oracle:
+        condition: service_healthy
+    networks:
+      - erp-network
+    profiles:
+      - services

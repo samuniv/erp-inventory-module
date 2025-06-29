@@ -335,6 +335,7 @@ To ensure resilience and graceful degradation, each service will implement the f
 ## 16. Roles & Permissions
 
 - **RBAC Model**
+
   - Roles: Admin, Manager, Clerk
   - JWT claims/scopes map to operations
 
