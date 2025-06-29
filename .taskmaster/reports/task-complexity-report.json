@@ -1,0 +1,133 @@
+{
+	"meta": {
+		"generatedAt": "2025-06-29T13:52:04.682Z",
+		"tasksAnalyzed": 15,
+		"totalTasks": 15,
+		"analysisCount": 15,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Project Scaffolding & Docker Environment Setup",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the 'Project Scaffolding & Docker Environment Setup' task into subtasks for: 1. Initializing the Git repository and creating the .NET solution structure. 2. Adding and configuring the PostgreSQL service in Docker Compose. 3. Adding and configuring the Oracle XE service in Docker Compose. 4. Adding and configuring the Apache Kafka and Zookeeper services in Docker Compose.",
+			"reasoning": "The task involves multiple distinct infrastructure components (Postgres, Oracle, Kafka) and project setup (Git, .NET solution). Each component requires specific configuration and verification, making it ideal for decomposition."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "API Gateway (YARP) Implementation",
+			"complexityScore": 3,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Expand the 'API Gateway (YARP) Implementation' task into subtasks for: 1. Creating the `Gateway.API` .NET project and installing the YARP package. 2. Configuring initial routes and clusters in `appsettings.json` for all backend services. 3. Implementing and configuring the CORS policy to allow requests from the frontend.",
+			"reasoning": "While not overly complex, the task has distinct steps: creating the API project, configuring YARP routes/clusters, and setting up the CORS policy. These can be tracked separately."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Auth.Service Implementation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Decompose the 'Auth.Service Implementation' task into subtasks for: 1. Project setup with EF Core and PostgreSQL connection. 2. Implementing the user registration endpoint. 3. Implementing the login endpoint with JWT generation. 4. Implementing the token refresh endpoint. 5. Implementing the password reset endpoint.",
+			"reasoning": "This is a feature-rich service with several distinct responsibilities: database integration, user registration, login/token generation, token refresh, and password reset. Each endpoint represents a significant piece of work."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Integrate JWT Authentication into API Gateway",
+			"complexityScore": 5,
+			"recommendedSubtasks": 2,
+			"expansionPrompt": "Break down the 'Integrate JWT Authentication into API Gateway' task into two subtasks: 1. Configure the JWT Bearer authentication handler in `Gateway.API` to validate tokens from `Auth.Service`. 2. Apply a global authorization policy to the YARP configuration to protect all downstream routes except for the authentication endpoints.",
+			"reasoning": "The task has two main parts: configuring the JWT bearer authentication handler to validate tokens and then applying the authorization policy to the YARP routes. These are distinct configuration steps."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Supplier.Service CRUD API Implementation",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Expand the 'Supplier.Service CRUD API' task into subtasks based on the CQRS pattern: 1. Set up the project with EF Core, Oracle provider, and MediatR. 2. Implement all Command handlers (Create, Update, Delete). 3. Implement all Query handlers (Get all, Get by ID). 4. Implement the database initializer for seeding data.",
+			"reasoning": "This is a standard CRUD service, but the use of Oracle, CQRS/MediatR, and Testcontainers adds moderate complexity. The CQRS pattern provides a natural way to split the work into commands and queries."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Inventory.Service API & Kafka Alert Publisher",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Decompose the 'Inventory.Service API & Kafka Alert Publisher' task into subtasks for: 1. Implementing the basic CRUD endpoints for inventory items using EF Core and Oracle. 2. Integrating the Confluent.Kafka client and creating a Kafka producer service. 3. Implementing the logic to publish a message to the `inventory.alerts` topic when stock is low. 4. Implementing the database initializer for seeding data.",
+			"reasoning": "The task has two major functional areas: the standard CRUD API for inventory items and the event publishing logic to Kafka. These should be developed and tested separately."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Order.Service API & Kafka Event Handling",
+			"complexityScore": 9,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the 'Order.Service API & Kafka Event Handling' task into subtasks for: 1. Implementing the core Order API endpoints with EF Core and PostgreSQL. 2. Implementing the Kafka producer to publish an `order.created` event. 3. Creating the `IHostedService` background worker for the Kafka consumer. 4. Implementing the consumer logic to listen to `inventory.alerts` and update orders. 5. Implementing the database initializer for seeding data.",
+			"reasoning": "This service is highly complex, acting as an API, a Kafka producer, and a Kafka consumer via a background service. Each of these roles is a significant and distinct piece of functionality."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Angular SPA Foundation: Shell, Routing, & Auth",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Expand the 'Angular SPA Foundation' task into subtasks for: 1. Initializing the Angular project and integrating Angular Material. 2. Creating the main application shell component with toolbar and sidenav. 3. Configuring the AppRoutingModule with all primary routes. 4. Implementing the `AuthService` and the `LoginComponent` with its reactive form. 5. Implementing the `AuthGuard` and the JWT `HttpInterceptor`.",
+			"reasoning": "This foundational task involves several large, independent pieces of work: initial project setup, creating the main app layout, defining all routes, building the authentication service, and implementing the UI/UX for login and route protection."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Angular Inventory Module: List, Detail, & Forms",
+			"complexityScore": 6,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Decompose the 'Angular Inventory Module' task into subtasks for: 1. Creating the `InventoryService` to handle API calls. 2. Building the inventory list component using `MatTable` with filtering capabilities. 3. Creating the create/edit inventory item component using a reactive form inside a `MatDialog`.",
+			"reasoning": "This is a standard but non-trivial frontend feature. It can be broken down into the data access layer (`InventoryService`), the main list/display component (`MatTable`), and the create/edit functionality (form in a `MatDialog`)."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Angular Supplier Module: Management via Tables & Dialogs",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the 'Angular Supplier Module' task into subtasks for: 1. Creating the `SupplierService` for API communication. 2. Building the supplier list component using `MatTable` with search. 3. Creating the create/edit supplier component using a reactive form within a `MatDialog`.",
+			"reasoning": "This task is structurally identical to the Inventory module. The complexity is slightly lower as the development patterns will have already been established, but it still requires distinct subtasks for the service, list, and form components."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Angular Order Module: Multi-Step Creation Wizard",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Expand the 'Angular Order Module' task into subtasks for: 1. Creating the main order wizard component using `MatStepper`. 2. Implementing Step 1 (Customer/Date selection). 3. Implementing Step 2 (Adding items from a searchable list). 4. Implementing Step 3 (Review and Submit) and the service logic to post the final order.",
+			"reasoning": "A multi-step wizard is more complex than a standard CRUD form. It's naturally decomposable by step, with each step having its own UI and logic. A dedicated service to manage state across steps is also a distinct piece of work."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Implement Backend Resilience Patterns (Polly)",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Decompose the 'Implement Backend Resilience Patterns' task into subtasks for applying Polly policies to: 1. The `Auth.Service`. 2. The `Supplier.Service`. 3. The `Inventory.Service`. 4. The `Order.Service`. Each subtask should include retry and circuit breaker policies for relevant external calls.",
+			"reasoning": "This is a cross-cutting concern that needs to be applied to each microservice individually. Creating a subtask for each service ensures the work is tracked and implemented consistently everywhere."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Backend Integration Testing with Testcontainers",
+			"complexityScore": 8,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the 'Backend Integration Testing with Testcontainers' task into subtasks for creating a full integration test suite for: 1. The `Auth.Service` using `Testcontainers.PostgreSql`. 2. The `Supplier.Service` using `Testcontainers.Oracle`. 3. The `Inventory.Service` using `Testcontainers.Oracle` and `Testcontainers.Kafka`. 4. The `Order.Service` using `Testcontainers.PostgreSql` and `Testcontainers.Kafka`.",
+			"reasoning": "Writing reliable integration tests with real infrastructure dependencies is complex. This practice must be applied to each service, so a subtask per service ensures comprehensive test coverage."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "Observability & Health Checks Implementation",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Expand the 'Observability & Health Checks' task into subtasks for implementing the full observability stack (Serilog, OpenTelemetry, Health Checks) in: 1. The `Auth.Service`. 2. The `Supplier.Service`. 3. The `Inventory.Service`. 4. The `Order.Service`.",
+			"reasoning": "This is a cross-cutting concern that requires careful configuration in each microservice. A subtask per service ensures consistent setup of logging, metrics, tracing, and health checks."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "CI/CD Pipeline Setup with GitHub Actions",
+			"complexityScore": 8,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Decompose the 'CI/CD Pipeline Setup' task into subtasks for: 1. Creating the backend workflow (`dotnet.yml`) to build, test (including integration tests), and publish all .NET services. 2. Creating the frontend workflow (`angular.yml`) to build, lint, and test the Angular SPA. 3. Configuring workflow triggers and required repository secrets.",
+			"reasoning": "CI/CD for a microservices and SPA architecture is complex. The task has two very distinct parts: the .NET backend pipeline and the Angular frontend pipeline, which use different tools and steps. A third subtask for configuration is also logical."
+		}
+	]
+}

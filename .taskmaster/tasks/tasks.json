@@ -1,0 +1,220 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Project Scaffolding & Docker Environment Setup",
+        "description": "Establish the foundational project structure, including the Git repository, solution file, and a comprehensive Docker Compose configuration to run all required infrastructure services locally.",
+        "details": "Create a `docker-compose.yml` file to orchestrate containers for PostgreSQL (`postgres:16`), Oracle XE (`gvenzl/oracle-xe:21-slim-faststart`), and Apache Kafka (`confluentinc/cp-kafka:7.6.1` with a Zookeeper dependency). Define networks and volumes for data persistence. Set up the .NET solution (`.sln`) with project folders for `Gateway.API`, `Auth.Service`, `Inventory.Service`, `Order.Service`, and `Supplier.Service`. Initialize a Git repository with a `.gitignore` file for .NET and Angular.",
+        "testStrategy": "Run `docker-compose up -d`. Verify all containers are running and healthy using `docker ps`. Check that ports 5432 (Postgres), 1521 (Oracle), and 9092 (Kafka) are accessible from the host machine.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "API Gateway (YARP) Implementation",
+        "description": "Implement the API Gateway using YARP to act as the single entry point for the frontend. This includes initial route configuration for all backend services.",
+        "details": "Create a new .NET 9 Minimal API project named `Gateway.API`. Install the `Yarp.ReverseProxy` NuGet package (latest version). Configure `appsettings.json` with initial route and cluster definitions for `auth`, `inventory`, `orders`, and `suppliers`. For example: `\"Routes\": { \"auth-route\": { \"ClusterId\": \"auth-cluster\", \"Match\": { \"Path\": \"/api/auth/{**catch-all}\" } } }`. Implement basic CORS policy to allow requests from the Angular SPA's local development server.",
+        "testStrategy": "Start the Gateway.API project. Make a request to a placeholder route (e.g., `/api/auth/login`). Verify that the gateway attempts to forward the request and returns a 502/503 error (since the service isn't running yet), confirming the routing rule is active.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Auth.Service Implementation",
+        "description": "Develop the authentication microservice responsible for user management and JWT issuance using .NET Identity and PostgreSQL.",
+        "details": "Create a .NET 9 Minimal API project for `Auth.Service`. Integrate `Microsoft.AspNetCore.Identity.EntityFrameworkCore`. Use the `Npgsql.EntityFrameworkCore.PostgreSQL` provider (latest version) to connect to the PostgreSQL container. Implement endpoints for `POST /api/auth/register`, `login`, `refresh`, and `reset-password`. On successful login, generate a JWT containing user ID and roles (`Admin`, `Manager`, `Clerk`) as claims. Use `System.IdentityModel.Tokens.Jwt` for token creation.",
+        "testStrategy": "Use xUnit to write integration tests. With Testcontainers, spin up a temporary PostgreSQL database. Test user registration, successful login (verifying JWT structure and claims), and failed login attempts. Use a REST client like Postman to hit the endpoints directly.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Integrate JWT Authentication into API Gateway",
+        "description": "Secure the API Gateway by implementing JWT validation. All requests to downstream services (except auth endpoints) must contain a valid token.",
+        "details": "In `Gateway.API`, add authentication and authorization services. Configure the JWT Bearer authentication handler (`AddJwtBearer`) to validate tokens issued by `Auth.Service`. The authority should point to the `Auth.Service` issuer URI, and the signing key must match. Apply an `[Authorize]` policy to the YARP configuration for all routes except `/api/auth/*` to enforce authentication globally.",
+        "testStrategy": "1. Request a protected route (e.g., `/api/inventory/items`) without a token; expect a 401 Unauthorized. 2. Log in via `Auth.Service` to get a token. 3. Retry the request with the `Authorization: Bearer <token>` header; expect a 502/503 (as service is not yet up), not a 401.",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Supplier.Service CRUD API Implementation",
+        "description": "Build the Supplier microservice with full CRUD functionality to manage supplier data, connecting to an Oracle database.",
+        "details": "Create a .NET 9 Minimal API project for `Supplier.Service`. Use Entity Framework Core with the `Oracle.EntityFrameworkCore` provider (latest version) to connect to the Oracle 19c container. Implement the REST endpoints: `GET /api/suppliers`, `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`. Use MediatR library to implement a CQRS pattern for clean separation of commands and queries. Implement the `DbInitializer` to seed 3 suppliers.",
+        "testStrategy": "Write xUnit integration tests using Testcontainers for Oracle (`gvenzl/oracle-xe`). Test each CRUD endpoint: create a supplier, retrieve it, update it, list all, and finally delete it. Validate HTTP status codes and response bodies.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Inventory.Service API & Kafka Alert Publisher",
+        "description": "Develop the Inventory microservice for item management and stock tracking. This service will publish alerts to a Kafka topic when stock levels fall below a threshold.",
+        "details": "Create a .NET 9 Minimal API project for `Inventory.Service` connecting to Oracle DB via EF Core. Implement all specified CRUD endpoints. In the `POST` and `PUT` logic for items, check if `stockLevel < reorderThreshold`. If true, use the `Confluent.Kafka` .NET client (latest version) to create a producer and publish a message to the `inventory.alerts` topic. The message should contain `ItemId` and `CurrentStock`. Implement the `DbInitializer` to seed 10 inventory items.",
+        "testStrategy": "Use Testcontainers for Oracle and Kafka. Test CRUD operations via xUnit. For the Kafka feature, update an item to have low stock and verify that a message is published to the `inventory.alerts` topic using a test consumer.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Order.Service API & Kafka Event Handling",
+        "description": "Build the Order microservice to handle order processing. This service will publish order creation events and consume inventory alerts from Kafka.",
+        "details": "Create a .NET 9 Minimal API for `Order.Service` connecting to PostgreSQL via EF Core. Implement endpoints for order management. On `POST /api/orders`, publish a message to `order.created` using the `Confluent.Kafka` client. Implement a background service (`IHostedService`) that runs a Kafka consumer listening to the `inventory.alerts` topic. When an alert is received, the service should flag any pending orders containing that low-stock item. Implement `DbInitializer` to seed 5 orders.",
+        "testStrategy": "Use Testcontainers for PostgreSQL and Kafka. Test order creation and verify the `order.created` event is published. Separately, publish a mock message to `inventory.alerts` and verify the consumer logic correctly flags a relevant order in the database.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Angular SPA Foundation: Shell, Routing, & Auth",
+        "description": "Initialize the Angular 19 SPA. Set up the main application shell with Angular Material, configure routing, and implement the authentication flow including login page, route guards, and an HTTP interceptor for JWTs.",
+        "details": "Use `ng new erp-inventory-angular --standalone` to create the project. Add Angular Material with `ng add @angular/material`. Create a core layout component with `MatToolbar` and `MatSidenav`. Set up the `AppRoutingModule` with paths for login, dashboard, inventory, orders, and suppliers. Create a `LoginComponent` with a reactive form. Create an `AuthService` to handle API calls to `Auth.Service`. Implement an `AuthGuard` to protect routes and an `HttpInterceptor` to attach the JWT to all outgoing requests.",
+        "testStrategy": "Run `ng serve`. Test that navigating to a protected route (e.g., '/inventory') redirects to '/login'. After logging in, verify the JWT is stored (e.g., in localStorage) and that the user can access the protected route. Verify the interceptor adds the `Authorization` header in browser dev tools.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Angular Inventory Module: List, Detail, & Forms",
+        "description": "Create the inventory management feature module in the Angular app, allowing users to view, filter, create, and edit inventory items.",
+        "details": "Create a new standalone component for the inventory list. Use `MatTable` to display the inventory items fetched from the `Inventory.Service`. Add form controls for filtering by name and supplier. Use Angular's `ReactiveFormsModule` to build the create/edit item forms, likely presented in a `MatDialog`. Create an `InventoryService` in Angular to encapsulate all API interactions with the backend.",
+        "testStrategy": "Using Karma and Jasmine, write component tests to ensure the table renders data correctly and forms have proper validation. Manually test the full CRUD flow: create an item, see it in the table, filter for it, edit it, and delete it. Verify all API calls in the browser's network tab.",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Angular Supplier Module: Management via Tables & Dialogs",
+        "description": "Implement the supplier management UI using Angular Material components, providing a user-friendly interface for all CRUD operations.",
+        "details": "Create a `SupplierListComponent` using `MatTable` to display suppliers. Implement search functionality. Use a `MatDialog` containing a reactive form (`SupplierFormComponent`) for creating and editing supplier information. An Angular `SupplierService` will handle all communication with the `Supplier.Service` API.",
+        "testStrategy": "Manually test the full CRUD lifecycle for suppliers through the UI. Write unit tests for the `SupplierFormComponent` to check validation logic. Ensure API requests are correctly formatted and sent.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Angular Order Module: Multi-Step Creation Wizard",
+        "description": "Develop the multi-step order creation wizard in the Angular SPA, guiding users through selecting items and submitting an order.",
+        "details": "Use the Angular Material Stepper (`MatStepper`) component to create a multi-step form. Step 1: Select customer/date. Step 2: Add items to the order from a searchable list (reusing inventory data). Step 3: Review and submit. The state of the order should be managed in a service as the user progresses through the steps. On submission, call the `Order.Service` API.",
+        "testStrategy": "Test each step of the wizard. Verify that data is maintained between steps. Write component tests for the stepper logic. Manually create a complete order and verify that the `POST /api/orders` request is sent with the correct payload and that the UI updates accordingly.",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          9,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement Backend Resilience Patterns (Polly)",
+        "description": "Implement resilience and fault tolerance patterns across all .NET microservices using the Polly library to handle transient faults.",
+        "details": "Install the `Polly.Extensions.Http` NuGet package (latest version). In each service's `Program.cs`, configure `AddHttpClient` for inter-service communication to include Polly policies. Implement an exponential backoff retry policy (`AddTransientHttpErrorPolicy`) for transient network errors. Implement a circuit breaker policy that breaks after 5 consecutive failures. For database and Kafka calls, wrap the logic in `Policy.ExecuteAsync` blocks with similar retry/circuit-breaker configurations.",
+        "testStrategy": "Write specific integration tests to trigger fault conditions. For example, configure a downstream service to fail and verify the retry policy is executed. Manually shut down a dependent service (e.g., `Inventory.Service`) and observe the circuit breaker opening in the logs of the calling service (e.g., `Order.Service`).",
+        "priority": "high",
+        "dependencies": [
+          3,
+          5,
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Backend Integration Testing with Testcontainers",
+        "description": "Establish a robust integration testing suite for the backend services using xUnit and Testcontainers to validate interactions with real databases and message brokers.",
+        "details": "In each service's test project, add the `Testcontainers.PostgreSql`, `Testcontainers.Oracle`, and `Testcontainers.Kafka` NuGet packages. Create a base test class or xUnit fixture that programmatically starts and stops the required containers for a test run. Write end-to-end tests that span service logic, database interaction, and Kafka messaging. For example, an `Inventory.Service` test should start Oracle and Kafka, call the API to update stock, and verify both the database state and the Kafka message.",
+        "testStrategy": "Execute the integration test suite as part of the build process. The tests pass if they can successfully interact with the containerized dependencies and validate the expected outcomes without any mocks for infrastructure components.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          5,
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Observability & Health Checks Implementation",
+        "description": "Integrate observability tooling into all .NET services for logging, metrics, and tracing to meet non-functional requirements for monitoring and health.",
+        "details": "In each .NET service, add NuGet packages for `OpenTelemetry.Extensions.Hosting`, `OpenTelemetry.AspNetCore.Instrumentation`, `OpenTelemetry.Exporter.Prometheus.AspNetCore`, and `Serilog.AspNetCore`. Configure OpenTelemetry to trace HTTP requests and export metrics. Configure Serilog for structured logging. Implement health checks using `AddHealthChecks()`, adding checks for database connectivity (`HealthChecks.NpgSql`, `HealthChecks.Oracle.Managed`) and Kafka (`HealthChecks.Kafka`). Expose a `/metrics` endpoint for Prometheus and a `/health` endpoint for health status.",
+        "testStrategy": "Run the services and navigate to their `/health` endpoints; verify a 'Healthy' status. Scrape the `/metrics` endpoint with a local Prometheus instance and confirm that HTTP request metrics are being collected. Check console/file logs to ensure they are structured JSON from Serilog.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          5,
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "CI/CD Pipeline Setup with GitHub Actions",
+        "description": "Create a continuous integration and deployment pipeline using GitHub Actions to automate the building, testing, and publishing of all services and the SPA.",
+        "details": "Create a `.github/workflows` directory. Define separate YAML workflow files for the backend and frontend. The backend workflow (`dotnet.yml`) should trigger on push to `main`, restore dependencies, build the solution, run all xUnit tests (including Testcontainers-based integration tests), and publish the service artifacts. The frontend workflow (`angular.yml`) should install Node.js, run `npm install`, lint, test (with Karma/Jasmine), and build the SPA for production.",
+        "testStrategy": "Push a code change to a feature branch and create a pull request. Verify that the GitHub Actions workflows are triggered automatically. Confirm that all build, lint, and test steps pass successfully. A failed test should cause the workflow to fail and block the PR from being merged.",
+        "priority": "medium",
+        "dependencies": [
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-29T13:50:42.808Z",
+      "updated": "2025-06-29T13:50:42.808Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
