@@ -22,23 +22,24 @@ export interface AuthResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private readonly TOKEN_KEY = 'erp_auth_token';
   private readonly USER_KEY = 'erp_user_data';
   private readonly API_BASE_URL = 'http://localhost:5010/api'; // Gateway API URL
 
-  private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
+  private currentUserSubject = new BehaviorSubject<User | null>(
+    this.getUserFromStorage()
+  );
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(
+    this.hasValidToken()
+  );
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router
-  ) {
+  constructor(private http: HttpClient, private router: Router) {
     // Check token validity on service initialization
     this.checkTokenValidity();
   }
@@ -52,13 +53,14 @@ export class AuthService {
       return this.mockLogin(credentials);
     }
 
-    return this.http.post<AuthResponse>(`${this.API_BASE_URL}/auth/login`, credentials)
+    return this.http
+      .post<AuthResponse>(`${this.API_BASE_URL}/auth/login`, credentials)
       .pipe(
-        tap(response => {
+        tap((response) => {
           this.setAuthData(response.token, response.user);
         }),
         map(() => true),
-        catchError(error => {
+        catchError((error) => {
           console.error('Login error:', error);
           return of(false);
         })
@@ -72,11 +74,11 @@ export class AuthService {
     // Clear stored data
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-    
+
     // Update subjects
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
-    
+
     // Navigate to login
     this.router.navigate(['/login']);
   }
@@ -136,7 +138,7 @@ export class AuthService {
   private setAuthData(token: string, user: User): void {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-    
+
     this.currentUserSubject.next(user);
     this.isAuthenticatedSubject.next(true);
   }
@@ -169,7 +171,10 @@ export class AuthService {
   }
 
   private isDevelopmentMode(): boolean {
-    return !this.API_BASE_URL.includes('production') || window.location.hostname === 'localhost';
+    return (
+      !this.API_BASE_URL.includes('production') ||
+      window.location.hostname === 'localhost'
+    );
   }
 
   private mockLogin(credentials: LoginRequest): Observable<boolean> {
@@ -179,27 +184,27 @@ export class AuthService {
         id: '1',
         name: 'Admin User',
         email: 'admin@erp.com',
-        role: 'Administrator'
+        role: 'Administrator',
       },
       {
         id: '2',
         name: 'Manager User',
         email: 'manager@erp.com',
-        role: 'Manager'
+        role: 'Manager',
       },
       {
         id: '3',
         name: 'Clerk User',
         email: 'clerk@erp.com',
-        role: 'Clerk'
-      }
+        role: 'Clerk',
+      },
     ];
 
     // Simulate network delay
     return of(null).pipe(
       map(() => {
         // Find user by email
-        const user = mockUsers.find(u => u.email === credentials.email);
+        const user = mockUsers.find((u) => u.email === credentials.email);
         if (!user) {
           throw new Error('Invalid credentials');
         }
@@ -215,14 +220,16 @@ export class AuthService {
 
   private generateMockJWT(user: User): string {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-    const payload = btoa(JSON.stringify({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    }));
+    const payload = btoa(
+      JSON.stringify({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
+      })
+    );
     const signature = btoa('mock-signature');
     return `${header}.${payload}.${signature}`;
   }

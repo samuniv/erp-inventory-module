@@ -1,0 +1,194 @@
+<div class="inventory-form-dialog">
+  <div mat-dialog-title class="dialog-title">
+    <mat-icon>{{ isEditMode ? "edit" : "add" }}</mat-icon>
+    <span>{{ title }}</span>
+  </div>
+
+  <div mat-dialog-content class="dialog-content">
+    <form [formGroup]="inventoryForm" class="inventory-form">
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h4>Basic Information</h4>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Item Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Enter item name"
+            />
+            <mat-error
+              *ngIf="
+                inventoryForm.get('name')?.invalid &&
+                inventoryForm.get('name')?.touched
+              "
+            >
+              {{ getErrorMessage("name") }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              placeholder="Enter item description (optional)"
+              rows="3"
+            >
+            </textarea>
+            <mat-error
+              *ngIf="
+                inventoryForm.get('description')?.invalid &&
+                inventoryForm.get('description')?.touched
+              "
+            >
+              {{ getErrorMessage("description") }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>SKU</mat-label>
+            <input matInput formControlName="sku" placeholder="Enter SKU" />
+            <mat-error
+              *ngIf="
+                inventoryForm.get('sku')?.invalid &&
+                inventoryForm.get('sku')?.touched
+              "
+            >
+              {{ getErrorMessage("sku") }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Category</mat-label>
+            <mat-select formControlName="category">
+              <mat-option
+                *ngFor="let category of data.categories"
+                [value]="category"
+              >
+                {{ category }}
+              </mat-option>
+            </mat-select>
+            <mat-error
+              *ngIf="
+                inventoryForm.get('category')?.invalid &&
+                inventoryForm.get('category')?.touched
+              "
+            >
+              {{ getErrorMessage("category") }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Pricing and Stock Section -->
+      <div class="form-section">
+        <h4>Pricing & Stock</h4>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Price</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="price"
+              placeholder="0.00"
+              step="0.01"
+            />
+            <span matPrefix>$&nbsp;</span>
+            <mat-error
+              *ngIf="
+                inventoryForm.get('price')?.invalid &&
+                inventoryForm.get('price')?.touched
+              "
+            >
+              {{ getErrorMessage("price") }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Stock Level</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="stockLevel"
+              placeholder="0"
+            />
+            <mat-error
+              *ngIf="
+                inventoryForm.get('stockLevel')?.invalid &&
+                inventoryForm.get('stockLevel')?.touched
+              "
+            >
+              {{ getErrorMessage("stockLevel") }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Reorder Threshold</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="reorderThreshold"
+              placeholder="0"
+            />
+            <mat-hint>Alert when stock falls below this level</mat-hint>
+            <mat-error
+              *ngIf="
+                inventoryForm.get('reorderThreshold')?.invalid &&
+                inventoryForm.get('reorderThreshold')?.touched
+              "
+            >
+              {{ getErrorMessage("reorderThreshold") }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Supplier</mat-label>
+            <mat-select formControlName="supplierId">
+              <mat-option [value]="null">No Supplier</mat-option>
+              <mat-option
+                *ngFor="let supplier of data.suppliers"
+                [value]="supplier.id"
+              >
+                {{ supplier.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Status Section (Edit Mode Only) -->
+      <div class="form-section" *ngIf="isEditMode">
+        <h4>Status</h4>
+
+        <div class="form-row">
+          <mat-checkbox formControlName="isActive" class="status-checkbox">
+            Item is active and available
+          </mat-checkbox>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onCancel()" type="button">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="inventoryForm.invalid"
+      type="submit"
+    >
+      <mat-icon>{{ isEditMode ? "save" : "add" }}</mat-icon>
+      {{ submitButtonText }}
+    </button>
+  </div>
+</div>

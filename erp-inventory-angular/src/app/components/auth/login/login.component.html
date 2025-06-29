@@ -4,12 +4,14 @@
       <mat-card-title>ERP Inventory System</mat-card-title>
       <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
     </mat-card-header>
-    
+
     <mat-card-content>
       <!-- Demo credentials notice -->
       <div class="demo-notice">
         <mat-icon>info</mat-icon>
-        <span>Demo credentials are pre-filled. Click "Sign In" to continue.</span>
+        <span
+          >Demo credentials are pre-filled. Click "Sign In" to continue.</span
+        >
       </div>
 
       <!-- Error message -->
@@ -21,21 +23,38 @@
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" placeholder="Enter your email">
+          <input
+            matInput
+            formControlName="email"
+            type="email"
+            placeholder="Enter your email"
+          />
           <mat-icon matSuffix>email</mat-icon>
           <mat-error *ngIf="isFieldInvalid('email')">
-            {{ getFieldError('email') }}
+            {{ getFieldError("email") }}
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" placeholder="Enter your password">
-          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
-            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          <input
+            matInput
+            formControlName="password"
+            [type]="hidePassword ? 'password' : 'text'"
+            placeholder="Enter your password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            (click)="hidePassword = !hidePassword"
+            type="button"
+          >
+            <mat-icon>{{
+              hidePassword ? "visibility_off" : "visibility"
+            }}</mat-icon>
           </button>
           <mat-error *ngIf="isFieldInvalid('password')">
-            {{ getFieldError('password') }}
+            {{ getFieldError("password") }}
           </mat-error>
         </mat-form-field>
 
@@ -43,10 +62,15 @@
           Remember me
         </mat-checkbox>
 
-        <button mat-raised-button color="primary" type="submit" class="login-button full-width" 
-                [disabled]="loginForm.invalid || isLoading">
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="login-button full-width"
+          [disabled]="loginForm.invalid || isLoading"
+        >
           <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
-          <span>{{isLoading ? 'Signing in...' : 'Sign In'}}</span>
+          <span>{{ isLoading ? "Signing in..." : "Sign In" }}</span>
         </button>
       </form>
 
@@ -54,9 +78,9 @@
       <div class="demo-accounts">
         <h4>Demo Accounts:</h4>
         <ul>
-          <li><strong>admin@erp.com</strong> - Administrator</li>
-          <li><strong>manager@erp.com</strong> - Manager</li>
-          <li><strong>clerk@erp.com</strong> - Clerk</li>
+          <li><strong>admin&#64;erp.com</strong> - Administrator</li>
+          <li><strong>manager&#64;erp.com</strong> - Manager</li>
+          <li><strong>clerk&#64;erp.com</strong> - Clerk</li>
         </ul>
         <p><small>Password: any value works for demo</small></p>
       </div>

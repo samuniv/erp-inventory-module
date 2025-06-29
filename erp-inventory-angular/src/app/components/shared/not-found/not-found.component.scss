@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  
+
   .not-found-content {
     .error-icon {
       font-size: 120px;
@@ -13,7 +13,7 @@
       color: #f59e0b;
       margin-bottom: 24px;
     }
-    
+
     h1 {
       font-size: 6rem;
       font-weight: 700;
@@ -21,31 +21,31 @@
       margin: 0 0 16px 0;
       line-height: 1;
     }
-    
+
     h2 {
       font-size: 2rem;
       font-weight: 600;
       color: #374151;
       margin: 0 0 16px 0;
     }
-    
+
     p {
       font-size: 1.125rem;
       color: #6b7280;
       margin: 0 0 48px 0;
       max-width: 400px;
     }
-    
+
     .action-buttons {
       display: flex;
       gap: 16px;
       justify-content: center;
       flex-wrap: wrap;
-      
+
       button {
         min-width: 140px;
         padding: 12px 24px;
-        
+
         mat-icon {
           margin-right: 8px;
         }
@@ -59,25 +59,25 @@
   .not-found-container {
     padding: 24px;
     min-height: 70vh;
-    
+
     .not-found-content {
       .error-icon {
         font-size: 80px;
         width: 80px;
         height: 80px;
       }
-      
+
       h1 {
         font-size: 4rem;
       }
-      
+
       h2 {
         font-size: 1.5rem;
       }
-      
+
       .action-buttons {
         flex-direction: column;
-        
+
         button {
           width: 100%;
         }

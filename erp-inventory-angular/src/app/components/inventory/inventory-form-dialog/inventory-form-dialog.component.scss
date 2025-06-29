@@ -1,0 +1,176 @@
+.inventory-form-dialog {
+  min-width: 600px;
+  max-width: 800px;
+  width: 90vw;
+}
+
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+
+  .mat-icon {
+    color: #1976d2;
+  }
+}
+
+.dialog-content {
+  padding: 0 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.inventory-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fafafa;
+
+  h4 {
+    margin: 0 0 16px 0;
+    color: #333;
+    font-weight: 500;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &::before {
+      content: "";
+      width: 4px;
+      height: 20px;
+      background-color: #1976d2;
+      border-radius: 2px;
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.status-checkbox {
+  margin: 16px 0;
+
+  .mat-checkbox-label {
+    font-size: 0.95rem;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+
+  button {
+    min-width: 100px;
+
+    &[mat-raised-button] {
+      .mat-icon {
+        margin-right: 4px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+// Form field customizations
+.mat-mdc-form-field {
+  .mat-mdc-text-field-wrapper {
+    background-color: white;
+  }
+
+  &.mat-form-field-invalid {
+    .mat-mdc-text-field-wrapper {
+      background-color: #fff5f5;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .inventory-form-dialog {
+    min-width: unset;
+    width: 95vw;
+    max-width: unset;
+  }
+
+  .dialog-content {
+    padding: 0 16px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .half-width {
+    width: 100%;
+  }
+
+  .dialog-actions {
+    padding: 16px;
+
+    button {
+      flex: 1;
+    }
+  }
+}
+
+// Material input number styling
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+// Error message styling
+.mat-mdc-form-field-error {
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+// Hint styling
+.mat-mdc-form-field-hint {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+// Prefix styling
+.mat-mdc-form-field-prefix {
+  font-weight: 500;
+  color: #666;
+}

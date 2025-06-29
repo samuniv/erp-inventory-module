@@ -1,0 +1,235 @@
+<div class="inventory-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>inventory</mat-icon>
+        Inventory Management
+      </mat-card-title>
+      <mat-card-subtitle>
+        Manage your inventory items, stock levels, and suppliers
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Filters Section -->
+      <div class="filters-section">
+        <div class="filter-row">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search items</mat-label>
+            <input
+              matInput
+              [formControl]="searchControl"
+              placeholder="Search by name, SKU, or description"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select [formControl]="categoryControl">
+              <mat-option value="">All Categories</mat-option>
+              <mat-option
+                *ngFor="let category of categories"
+                [value]="category"
+              >
+                {{ category }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select [formControl]="statusControl">
+              <mat-option value="">All Status</mat-option>
+              <mat-option value="active">Active</mat-option>
+              <mat-option value="inactive">Inactive</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button
+            mat-stroked-button
+            (click)="clearFilters()"
+            class="clear-filters-btn"
+          >
+            <mat-icon>clear</mat-icon>
+            Clear Filters
+          </button>
+        </div>
+
+        <div class="action-row">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="onAddItem()"
+            class="add-btn"
+          >
+            <mat-icon>add</mat-icon>
+            Add New Item
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading indicator -->
+      <div *ngIf="isLoading" class="loading-indicator">
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="40"
+        ></mat-progress-spinner>
+        <p>Loading inventory items...</p>
+      </div>
+
+      <!-- Data Table -->
+      <div class="table-container" *ngIf="!isLoading">
+        <table
+          mat-table
+          [dataSource]="dataSource"
+          matSort
+          class="inventory-table"
+        >
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let item">
+              <div class="item-name-cell">
+                <strong>{{ item.name }}</strong>
+                <small *ngIf="item.description">{{ item.description }}</small>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- SKU Column -->
+          <ng-container matColumnDef="sku">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>SKU</th>
+            <td mat-cell *matCellDef="let item">
+              <code>{{ item.sku }}</code>
+            </td>
+          </ng-container>
+
+          <!-- Category Column -->
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+            <td mat-cell *matCellDef="let item">
+              <mat-chip-set>
+                <mat-chip>{{ item.category }}</mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Price Column -->
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Price</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.unitPrice | currency : "USD" : "symbol" : "1.2-2" }}
+            </td>
+          </ng-container>
+
+          <!-- Stock Level Column -->
+          <ng-container matColumnDef="stockLevel">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
+            <td mat-cell *matCellDef="let item">
+              <div class="stock-cell">
+                <mat-chip [color]="getStockStatusColor(item)" selected>
+                  {{ item.stockLevel }}
+                </mat-chip>
+                <mat-icon
+                  *ngIf="isLowStock(item)"
+                  class="warning-icon"
+                  matTooltip="Low stock warning"
+                >
+                  warning
+                </mat-icon>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Reorder Threshold Column -->
+          <ng-container matColumnDef="reorderThreshold">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Reorder At
+            </th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.reorderThreshold }}
+            </td>
+          </ng-container>
+
+          <!-- Supplier Column -->
+          <ng-container matColumnDef="supplierName">
+            <th mat-header-cell *matHeaderCellDef>Supplier</th>
+            <td mat-cell *matCellDef="let item">
+              {{ item.supplierName || "N/A" }}
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let item">
+              <mat-chip-set>
+                <mat-chip
+                  [color]="item.isActive ? 'primary' : 'accent'"
+                  selected
+                >
+                  {{ item.isActive ? "Active" : "Inactive" }}
+                </mat-chip>
+              </mat-chip-set>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let item" class="actions-cell">
+              <button
+                mat-icon-button
+                color="primary"
+                (click)="onEditItem(item)"
+                matTooltip="Edit item"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+
+              <button
+                mat-icon-button
+                color="accent"
+                (click)="onAdjustStock(item)"
+                matTooltip="Adjust stock"
+              >
+                <mat-icon>tune</mat-icon>
+              </button>
+
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="onDeleteItem(item)"
+                matTooltip="Delete item"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+
+        <!-- No data message -->
+        <div *ngIf="dataSource.data.length === 0" class="no-data">
+          <mat-icon>inventory_2</mat-icon>
+          <h3>No inventory items found</h3>
+          <p>Try adjusting your filters or add new items to get started.</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        *ngIf="!isLoading && totalCount > 0"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        [pageSize]="pageSize"
+        [length]="totalCount"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

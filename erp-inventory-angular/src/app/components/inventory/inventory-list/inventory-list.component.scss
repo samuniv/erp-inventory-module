@@ -1,0 +1,206 @@
+.inventory-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.filters-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 250px;
+}
+
+.clear-filters-btn {
+  height: 56px;
+  white-space: nowrap;
+}
+
+.add-btn {
+  min-width: 140px;
+}
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  p {
+    margin-top: 16px;
+    color: #666;
+  }
+}
+
+.table-container {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.inventory-table {
+  width: 100%;
+  min-width: 800px;
+
+  .mat-mdc-header-cell {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .mat-mdc-cell {
+    padding: 8px 16px;
+  }
+}
+
+.item-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    font-weight: 500;
+  }
+
+  small {
+    color: #666;
+    font-size: 0.8em;
+  }
+}
+
+.stock-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.warning-icon {
+  color: #ff9800;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 4px;
+
+  .mat-mdc-icon-button {
+    width: 36px;
+    height: 36px;
+
+    .mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #666;
+
+  .mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  h3 {
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9em;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .inventory-container {
+    padding: 10px;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+
+    .search-field {
+      min-width: unset;
+    }
+  }
+
+  .action-row {
+    justify-content: stretch;
+
+    .add-btn {
+      width: 100%;
+    }
+  }
+
+  .inventory-table {
+    font-size: 0.9em;
+
+    .mat-mdc-cell {
+      padding: 6px 8px;
+    }
+  }
+
+  .actions-cell {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+// Material chips customization
+.mat-mdc-chip-set {
+  margin: 0;
+}
+
+.mat-mdc-chip {
+  font-size: 0.75em;
+  min-height: 24px;
+}
+
+// Table row hover effect
+.mat-mdc-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+// Low stock highlighting
+.mat-mdc-chip.mat-accent {
+  background-color: #ff9800;
+  color: white;
+}
+
+.mat-mdc-chip.mat-warn {
+  background-color: #f44336;
+  color: white;
+}

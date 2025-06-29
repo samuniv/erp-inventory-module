@@ -184,7 +184,7 @@
         "dependencies": [
           1
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -192,7 +192,7 @@
             "description": "Initialize a new .NET Web API project. Configure the necessary NuGet packages for Entity Framework Core with an Oracle provider. Set up the DbContext, connection strings, and the Supplier entity model.",
             "dependencies": [],
             "details": "Create a new .NET solution and Web API project. Add NuGet packages: Microsoft.EntityFrameworkCore, Oracle.EntityFrameworkCore, and MediatR. Define the 'Supplier' entity class. Configure the 'SupplierDbContext' to connect to an Oracle database. Set up an initial database migration.",
-            "status": "in-progress"
+            "status": "done"
           },
           {
             "id": 2,
@@ -202,7 +202,7 @@
               1
             ],
             "details": "Define 'GetAllSuppliersQuery' and 'GetSupplierByIdQuery' records. Create corresponding 'GetAllSuppliersQueryHandler' and 'GetSupplierByIdQueryHandler' classes. These handlers will use the 'SupplierDbContext' to fetch data from the Oracle database and return appropriate DTOs.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -212,7 +212,7 @@
               1
             ],
             "details": "Define 'CreateSupplierCommand', 'UpdateSupplierCommand', and 'DeleteSupplierCommand' records. Implement their respective handlers ('CreateSupplierCommandHandler', etc.). These handlers will perform the CUD operations on the 'SupplierDbContext' and save changes to the Oracle database.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -223,7 +223,7 @@
               3
             ],
             "details": "Create a 'SuppliersController.cs' file. Implement GET endpoints for '/api/suppliers' and '/api/suppliers/{id}' that send the 'GetAllSuppliersQuery' and 'GetSupplierByIdQuery'. Implement POST, PUT, and DELETE endpoints that send the 'CreateSupplierCommand', 'UpdateSupplierCommand', and 'DeleteSupplierCommand' respectively.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -233,7 +233,7 @@
               4
             ],
             "details": "Create a new xUnit or NUnit test project. Add the 'Testcontainers.Oracle' NuGet package. Configure a test fixture to manage the lifecycle of the Oracle container. Write integration tests for each endpoint (GET, POST, PUT, DELETE) to ensure the CQRS handlers and database logic work correctly in an isolated environment.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -447,7 +447,7 @@
           6,
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -455,7 +455,7 @@
             "description": "Generate an Angular service to handle all HTTP requests for inventory data. This includes methods for fetching, adding, updating, and deleting inventory items.",
             "dependencies": [],
             "details": "Use the Angular CLI to generate a new service named `inventory.service.ts`. Implement methods like `getInventoryItems()`, `addInventoryItem(item)`, `updateInventoryItem(item)`, and `deleteInventoryItem(id)`. Utilize Angular's HttpClient module for communication with the backend API. Initially, you can use mock data with `of()` from RxJS if the API is not yet available.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -465,7 +465,7 @@
               1
             ],
             "details": "Generate a new component `inventory-list.component.ts`. Implement a MatTable with columns for key inventory data (e.g., item name, quantity, price, actions). Add a filter input field that filters the table data source. Inject the `InventoryService` and call its `getInventoryItems()` method in `ngOnInit` to populate the table.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -473,7 +473,7 @@
             "description": "Develop a reactive form for creating and editing inventory items. This form will be encapsulated within a new component and displayed inside an Angular Material Dialog (MatDialog).",
             "dependencies": [],
             "details": "Generate a new component `inventory-form-dialog.component.ts`. Use Angular's `FormBuilder` to create a reactive form with fields for item properties (e.g., name, description, quantity) and add appropriate validators (e.g., `Validators.required`). The component will receive data via `MAT_DIALOG_DATA` for editing existing items and will be configured to be opened via the `MatDialog` service.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -484,7 +484,7 @@
               3
             ],
             "details": "In the `inventory-list.component.ts`, add buttons for 'Add New Item', 'Edit', and 'Delete' in the table. The 'Add' and 'Edit' buttons will open the `InventoryFormDialogComponent` using the `MatDialog` service. On form submission from the dialog, call the appropriate `InventoryService` method (`addInventoryItem` or `updateInventoryItem`). The 'Delete' button will call the `deleteInventoryItem` service method. Ensure the table data is refreshed after each successful operation.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -499,7 +499,7 @@
           5,
           8
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -817,7 +817,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-29T18:37:42.304Z",
+      "updated": "2025-06-29T19:13:00.616Z",
       "description": "Tasks for master context"
     }
   }

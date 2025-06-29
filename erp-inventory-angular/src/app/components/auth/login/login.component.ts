@@ -23,10 +23,10 @@ import { AuthService } from '../../../services/auth/auth.service';
     MatButtonModule,
     MatIconModule,
     MatCheckboxModule,
-    MatSnackBarModule
+    MatSnackBarModule,
   ],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  styleUrl: './login.component.scss',
 })
 export class LoginComponent {
   loginForm: FormGroup;
@@ -44,7 +44,7 @@ export class LoginComponent {
     this.loginForm = this.fb.group({
       email: ['admin@erp.com', [Validators.required, Validators.email]],
       password: ['password', [Validators.required]],
-      rememberMe: [false]
+      rememberMe: [false],
     });
 
     // Check if user is already authenticated
@@ -60,7 +60,7 @@ export class LoginComponent {
 
       const credentials = {
         email: this.loginForm.value.email,
-        password: this.loginForm.value.password
+        password: this.loginForm.value.password,
       };
 
       this.authService.login(credentials).subscribe({
@@ -69,26 +69,31 @@ export class LoginComponent {
           if (success) {
             this.snackBar.open('Login successful!', 'Close', {
               duration: 3000,
-              panelClass: ['success-snackbar']
+              panelClass: ['success-snackbar'],
             });
             this.navigateToRedirectUrl();
           } else {
             this.errorMessage = 'Invalid email or password. Please try again.';
-            this.snackBar.open('Login failed. Please check your credentials.', 'Close', {
-              duration: 5000,
-              panelClass: ['error-snackbar']
-            });
+            this.snackBar.open(
+              'Login failed. Please check your credentials.',
+              'Close',
+              {
+                duration: 5000,
+                panelClass: ['error-snackbar'],
+              }
+            );
           }
         },
         error: (error) => {
           this.isLoading = false;
-          this.errorMessage = 'An error occurred during login. Please try again.';
+          this.errorMessage =
+            'An error occurred during login. Please try again.';
           this.snackBar.open('Login error. Please try again later.', 'Close', {
             duration: 5000,
-            panelClass: ['error-snackbar']
+            panelClass: ['error-snackbar'],
           });
           console.error('Login error:', error);
-        }
+        },
       });
     } else {
       // Mark all fields as touched to show validation errors
@@ -100,17 +105,18 @@ export class LoginComponent {
     event.preventDefault();
     this.snackBar.open('Password reset functionality coming soon!', 'Close', {
       duration: 3000,
-      panelClass: ['info-snackbar']
+      panelClass: ['info-snackbar'],
     });
   }
 
   private navigateToRedirectUrl(): void {
-    const redirectUrl = this.route.snapshot.queryParams['redirectUrl'] || '/dashboard';
+    const redirectUrl =
+      this.route.snapshot.queryParams['redirectUrl'] || '/dashboard';
     this.router.navigate([redirectUrl]);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
+    Object.keys(formGroup.controls).forEach((key) => {
       const control = formGroup.get(key);
       control?.markAsTouched();
 
@@ -124,7 +130,9 @@ export class LoginComponent {
   getFieldError(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
     if (field?.hasError('required')) {
-      return `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+      return `${
+        fieldName.charAt(0).toUpperCase() + fieldName.slice(1)
+      } is required`;
     }
     if (field?.hasError('email')) {
       return 'Please enter a valid email address';

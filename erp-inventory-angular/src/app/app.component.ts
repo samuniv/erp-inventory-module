@@ -45,42 +45,39 @@ interface Breadcrumb {
     MatDividerModule,
     RouterModule,
     FormsModule,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'ERP Inventory Management';
   showLayout = true;
-  
+
   user: User | null = null;
   searchQuery = '';
-  
+
   notifications: Notification[] = [
     {
       message: 'Low stock alert: Product A has only 5 units remaining',
       type: 'warning',
-      timestamp: new Date()
+      timestamp: new Date(),
     },
     {
       message: 'New order #12345 has been placed',
       type: 'info',
-      timestamp: new Date(Date.now() - 3600000) // 1 hour ago
-    }
+      timestamp: new Date(Date.now() - 3600000), // 1 hour ago
+    },
   ];
 
   breadcrumbs: Breadcrumb[] = [];
   private destroy$ = new Subject<void>();
 
-  constructor(
-    private router: Router,
-    private authService: AuthService
-  ) {
+  constructor(private router: Router, private authService: AuthService) {
     // Hide layout for login page
     this.router.events
       .pipe(
-        filter(event => event instanceof NavigationEnd),
+        filter((event) => event instanceof NavigationEnd),
         takeUntil(this.destroy$)
       )
       .subscribe((event: NavigationEnd) => {
@@ -92,7 +89,7 @@ export class AppComponent implements OnInit, OnDestroy {
     // Subscribe to user changes
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(user => {
+      .subscribe((user) => {
         this.user = user;
       });
   }

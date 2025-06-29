@@ -9,7 +9,7 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
-    title: 'Login - ERP Inventory System'
+    title: 'Login - ERP Inventory System',
   },
 
   // Protected routes (authentication required)
@@ -20,13 +20,13 @@ export const routes: Routes = [
       {
         path: '',
         redirectTo: '/dashboard',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
       {
         path: 'dashboard',
         component: DashboardComponent,
-        title: 'Dashboard - ERP Inventory System'
-      }
+        title: 'Dashboard - ERP Inventory System',
+      },
       // TODO: Lazy-loaded feature modules (uncomment when components are created)
       // {
       //   path: 'inventory',
@@ -68,19 +68,19 @@ export const routes: Routes = [
       //   loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
       //   title: 'Settings - ERP Inventory System'
       // }
-    ]
+    ],
   },
 
   // 404 - Not Found
   {
     path: '404',
     component: NotFoundComponent,
-    title: 'Page Not Found - ERP Inventory System'
+    title: 'Page Not Found - ERP Inventory System',
   },
 
   // Wildcard route - must be last
   {
     path: '**',
-    redirectTo: '/404'
-  }
+    redirectTo: '/404',
+  },
 ];

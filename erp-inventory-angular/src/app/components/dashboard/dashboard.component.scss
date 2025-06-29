@@ -1,67 +1,67 @@
 .dashboard-container {
   max-width: 1200px;
   margin: 0 auto;
-  
+
   .welcome-section {
     margin-bottom: 32px;
     text-align: center;
-    
+
     h1 {
       font-size: 2.5rem;
       margin-bottom: 8px;
       color: #1f2937;
     }
-    
+
     p {
       font-size: 1.125rem;
       color: #6b7280;
       margin: 0;
     }
   }
-  
+
   .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 24px;
     margin-bottom: 48px;
-    
+
     .metric-card {
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      
+
       &:hover {
         transform: translateY(-4px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
       }
-      
+
       &.warning {
         border-left: 4px solid #f59e0b;
-        
+
         mat-icon {
           color: #f59e0b;
         }
-        
+
         .metric-value {
           color: #f59e0b;
         }
       }
-      
+
       mat-card-header {
         padding-bottom: 16px;
-        
+
         mat-icon {
           font-size: 32px;
           width: 32px;
           height: 32px;
           color: #3f51b5;
         }
-        
+
         mat-card-title {
           font-size: 1.125rem;
           font-weight: 500;
           color: #374151;
         }
       }
-      
+
       mat-card-content {
         .metric-value {
           font-size: 2.5rem;
@@ -70,7 +70,7 @@
           line-height: 1;
           margin-bottom: 4px;
         }
-        
+
         .metric-label {
           font-size: 0.875rem;
           color: #6b7280;
@@ -78,23 +78,23 @@
       }
     }
   }
-  
+
   .dashboard-actions {
     h2 {
       font-size: 1.5rem;
       margin-bottom: 24px;
       color: #1f2937;
     }
-    
+
     .action-buttons {
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
-      
+
       button {
         min-width: 160px;
         padding: 12px 24px;
-        
+
         mat-icon {
           margin-right: 8px;
         }
@@ -110,21 +110,21 @@
       h1 {
         font-size: 2rem;
       }
-      
+
       p {
         font-size: 1rem;
       }
     }
-    
+
     .dashboard-cards {
       grid-template-columns: 1fr;
       gap: 16px;
     }
-    
+
     .dashboard-actions {
       .action-buttons {
         flex-direction: column;
-        
+
         button {
           width: 100%;
         }

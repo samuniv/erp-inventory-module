@@ -6,15 +6,8 @@ import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [
-    MatCardModule,
-    MatIconModule,
-    MatButtonModule,
-    RouterModule
-  ],
+  imports: [MatCardModule, MatIconModule, MatButtonModule, RouterModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent {
-
-}
+export class DashboardComponent {}
