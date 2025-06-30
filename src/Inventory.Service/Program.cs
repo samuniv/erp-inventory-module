@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Shared.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,9 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 // Add application services
 builder.Services.AddScoped<IInventoryService, Inventory.Service.Services.InventoryService>();
 builder.Services.AddSingleton<IAlertProducerService, AlertProducerService>();
+
+// Add resilience policies
+builder.Services.AddResiliencePolicies();
 
 // Add health checks
 builder.Services.AddHealthChecks()

@@ -609,7 +609,7 @@
           6,
           7
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -617,7 +617,7 @@
             "description": "Implement and configure Polly retry and circuit-breaker policies for all outgoing HTTP client calls across all microservices using IHttpClientFactory.",
             "dependencies": [],
             "details": "Define standard policies for transient HTTP errors (e.g., 5xx, 408) with exponential backoff for retries and a circuit-breaker policy that breaks after a configured number of consecutive failures. Apply these policies centrally to ensure consistency.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -627,7 +627,7 @@
               1
             ],
             "details": "Identify specific exceptions related to database transient faults and Kafka broker unavailability. Create dedicated Polly policies to handle these specific failure scenarios, separate from the HTTP policies.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -817,7 +817,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-30T03:45:47.560Z",
+      "updated": "2025-06-30T07:32:35.973Z",
       "description": "Tasks for master context"
     }
   }

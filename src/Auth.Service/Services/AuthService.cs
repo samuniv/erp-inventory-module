@@ -3,6 +3,9 @@ using Auth.Service.DTOs;
 using Auth.Service.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Shared.Resilience;
 
 namespace Auth.Service.Services;
 
@@ -24,6 +27,7 @@ public class AuthService : IAuthService
     private readonly IJwtService _jwtService;
     private readonly AuthDbContext _context;
     private readonly ILogger<AuthService> _logger;
+    private readonly IAsyncPolicy _dbPolicy;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -31,7 +35,8 @@ public class AuthService : IAuthService
         RoleManager<IdentityRole> roleManager,
         IJwtService jwtService,
         AuthDbContext context,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        [FromKeyedServices("DatabasePolicy")] IAsyncPolicy dbPolicy)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -39,6 +44,7 @@ public class AuthService : IAuthService
         _jwtService = jwtService;
         _context = context;
         _logger = logger;
+        _dbPolicy = dbPolicy;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto)
@@ -91,7 +97,7 @@ public class AuthService : IAuthService
             };
 
             _context.RefreshTokens.Add(refreshTokenEntity);
-            await _context.SaveChangesAsync();
+            await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
 
             _logger.LogInformation("User {Email} registered successfully", registerDto.Email);
 
@@ -147,7 +153,7 @@ public class AuthService : IAuthService
             };
 
             _context.RefreshTokens.Add(refreshTokenEntity);
-            await _context.SaveChangesAsync();
+            await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
 
             _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
 
@@ -220,7 +226,7 @@ public class AuthService : IAuthService
             };
 
             _context.RefreshTokens.Add(newRefreshTokenEntity);
-            await _context.SaveChangesAsync();
+            await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
 
             return new AuthResponseDto
             {
@@ -305,7 +311,7 @@ public class AuthService : IAuthService
             if (tokenEntity != null)
             {
                 tokenEntity.IsRevoked = true;
-                await _context.SaveChangesAsync();
+                await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
                 return true;
             }
 

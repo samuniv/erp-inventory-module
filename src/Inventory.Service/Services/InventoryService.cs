@@ -3,6 +3,9 @@ using Inventory.Service.DTOs;
 using Inventory.Service.Events;
 using Inventory.Service.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Shared.Resilience;
 
 namespace Inventory.Service.Services;
 
@@ -23,15 +26,21 @@ public class InventoryService : IInventoryService
     private readonly InventoryDbContext _context;
     private readonly IAlertProducerService _alertProducer;
     private readonly ILogger<InventoryService> _logger;
+    private readonly IAsyncPolicy _dbPolicy;
+    private readonly IAsyncPolicy _kafkaPolicy;
 
     public InventoryService(
         InventoryDbContext context,
         IAlertProducerService alertProducer,
-        ILogger<InventoryService> logger)
+        ILogger<InventoryService> logger,
+        [FromKeyedServices("DatabasePolicy")] IAsyncPolicy dbPolicy,
+        [FromKeyedServices("KafkaPolicy")] IAsyncPolicy kafkaPolicy)
     {
         _context = context;
         _alertProducer = alertProducer;
         _logger = logger;
+        _dbPolicy = dbPolicy;
+        _kafkaPolicy = kafkaPolicy;
     }
 
     public async Task<IEnumerable<InventoryItemListDto>> GetAllItemsAsync()
@@ -87,18 +96,18 @@ public class InventoryService : IInventoryService
         };
 
         _context.InventoryItems.Add(item);
-        await _context.SaveChangesAsync();
+        await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
 
         _logger.LogInformation("Created new inventory item: {ItemName} (SKU: {Sku})", item.Name, item.Sku);
 
         // Check if the new item is already low stock
         if (item.StockLevel <= item.ReorderThreshold)
         {
-            await PublishLowStockAlert(item);
+            await _kafkaPolicy.ExecuteAsync(async () => await PublishLowStockAlert(item));
         }
 
         // Publish inventory updated event
-        await _alertProducer.PublishInventoryUpdatedAsync(new InventoryUpdatedEvent
+        await _kafkaPolicy.ExecuteAsync(async () => await _alertProducer.PublishInventoryUpdatedAsync(new InventoryUpdatedEvent
         {
             ItemId = item.Id,
             ItemName = item.Name,
@@ -110,7 +119,7 @@ public class InventoryService : IInventoryService
             Price = item.UnitPrice,
             SupplierId = item.SupplierId,
             UpdatedBy = "system"
-        });
+        }));
 
         return MapToDto(item);
     }
@@ -138,7 +147,7 @@ public class InventoryService : IInventoryService
         item.IsActive = updateDto.IsActive;
         item.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
 
         _logger.LogInformation(
             "Updated inventory item: {ItemName} (ID: {ItemId}), Stock: {PreviousStock} -> {NewStock}",
@@ -147,13 +156,13 @@ public class InventoryService : IInventoryService
         // Check for low stock alert
         if (item.StockLevel <= item.ReorderThreshold)
         {
-            await PublishLowStockAlert(item);
+            await _kafkaPolicy.ExecuteAsync(async () => await PublishLowStockAlert(item));
         }
 
         // Publish inventory updated event if stock changed
         if (stockChange != 0)
         {
-            await _alertProducer.PublishInventoryUpdatedAsync(new InventoryUpdatedEvent
+            await _kafkaPolicy.ExecuteAsync(async () => await _alertProducer.PublishInventoryUpdatedAsync(new InventoryUpdatedEvent
             {
                 ItemId = item.Id,
                 ItemName = item.Name,
@@ -165,7 +174,7 @@ public class InventoryService : IInventoryService
                 Price = item.UnitPrice,
                 SupplierId = item.SupplierId,
                 UpdatedBy = "system"
-            });
+            }));
         }
 
         return MapToDto(item);
@@ -182,7 +191,7 @@ public class InventoryService : IInventoryService
         // Soft delete
         item.IsActive = false;
         item.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
 
         _logger.LogInformation("Soft deleted inventory item: {ItemName} (ID: {ItemId})", item.Name, item.Id);
 
@@ -218,7 +227,7 @@ public class InventoryService : IInventoryService
         }
 
         item.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await _dbPolicy.ExecuteAsync(async () => await _context.SaveChangesAsync());
 
         _logger.LogInformation(
             "Stock adjusted for {ItemName} (ID: {ItemId}): {PreviousStock} -> {NewStock} (adjustment: {Adjustment})",
@@ -227,11 +236,11 @@ public class InventoryService : IInventoryService
         // Check for low stock alert
         if (item.StockLevel <= item.ReorderThreshold)
         {
-            await PublishLowStockAlert(item);
+            await _kafkaPolicy.ExecuteAsync(async () => await PublishLowStockAlert(item));
         }
 
         // Publish inventory updated event
-        await _alertProducer.PublishInventoryUpdatedAsync(new InventoryUpdatedEvent
+        await _kafkaPolicy.ExecuteAsync(async () => await _alertProducer.PublishInventoryUpdatedAsync(new InventoryUpdatedEvent
         {
             ItemId = item.Id,
             ItemName = item.Name,
@@ -244,7 +253,7 @@ public class InventoryService : IInventoryService
             SupplierId = item.SupplierId,
             UpdatedBy = "system",
             Metadata = new Dictionary<string, object> { { "reason", reason }, { "adjustment", adjustment } }
-        });
+        }));
 
         return true;
     }
@@ -267,7 +276,7 @@ public class InventoryService : IInventoryService
             Severity = severity
         };
 
-        await _alertProducer.PublishLowStockAlertAsync(alertEvent);
+        await _kafkaPolicy.ExecuteAsync(async () => await _alertProducer.PublishLowStockAlertAsync(alertEvent));
 
         _logger.LogWarning(
             "Low stock alert published for {ItemName} (ID: {ItemId}): {CurrentStock} <= {Threshold}",

@@ -1,11 +1,29 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Shared.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddOpenApi();
+
+// Add resilient HTTP clients for downstream services
+builder.Services.AddResilientHttpClients(options =>
+{
+    options.ConfigureAuthClient = true;
+    options.ConfigureInventoryClient = true;
+    options.ConfigureOrderClient = true;
+    options.ConfigureSupplierClient = true;
+    options.AuthServiceBaseUrl = "http://localhost:5006";
+    options.InventoryServiceBaseUrl = "http://localhost:5007";
+    options.OrderServiceBaseUrl = "http://localhost:5008";
+    options.SupplierServiceBaseUrl = "http://localhost:5009";
+    options.HttpTimeout = TimeSpan.FromSeconds(30);
+});
+
+// Add resilience policies
+builder.Services.AddResiliencePolicies();
 
 // Add authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
