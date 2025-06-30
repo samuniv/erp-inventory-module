@@ -1,20 +1,19 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Order.Service.Data;
 using Order.Service.DTOs;
-using Order.Service.Models;
+using Shared.TestInfrastructure.Collections;
 using Xunit;
 
 namespace Order.Service.Tests.Integration;
 
 /// <summary>
-/// Integration tests for Order API endpoints
+/// Integration tests for Order API endpoints using shared test infrastructure
 /// </summary>
+[Collection("PostgreSQL Integration Tests")]
 public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
 {
     private readonly OrderServiceTestFixture _fixture;
@@ -23,7 +22,7 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
     public OrderApiIntegrationTests(OrderServiceTestFixture fixture)
     {
         _fixture = fixture;
-        _client = _fixture.CreateClient();
+        _client = _fixture.Client;
     }
 
     [Fact]
@@ -230,8 +229,8 @@ public class OrderApiIntegrationTests : IClassFixture<OrderServiceTestFixture>
         var createdOrder = await createResponse.Content.ReadFromJsonAsync<OrderResponse>();
 
         // Assert - Verify in database
-        using var scope = _fixture.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
+        using var scope = _fixture.CreateDatabaseScope();
+        var context = _fixture.GetDbContext(scope);
 
         var dbOrder = await context.Orders
             .Include(o => o.OrderItems)

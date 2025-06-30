@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>
+            [*Tests*]*
+            [*.TestInfrastructure]*
+            [*]*.Program
+            [*]*.Startup
+          </Exclude>
+          <ExcludeByAttribute>
+            Obsolete,
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute
+          </ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+  
+  <TestRunParameters>
+    <!-- Integration test configuration -->
+    <Parameter name="DatabaseConnectionTimeout" value="30" />
+    <Parameter name="ContainerStartupTimeout" value="60" />
+    <Parameter name="TestDataCleanup" value="true" />
+  </TestRunParameters>
+  
+  <RunConfiguration>
+    <!-- Set maximum number of CPU cores to use for test execution -->
+    <MaxCpuCount>2</MaxCpuCount>
+    
+    <!-- Timeout for entire test run (in milliseconds) -->
+    <TestSessionTimeout>1800000</TestSessionTimeout>
+    
+    <!-- Results directory -->
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    
+    <!-- Target platform -->
+    <TargetPlatform>x64</TargetPlatform>
+    
+    <!-- Target framework -->
+    <TargetFrameworkVersion>net9.0</TargetFrameworkVersion>
+    
+    <!-- Disable app domains for better performance -->
+    <DisableAppDomain>true</DisableAppDomain>
+    
+    <!-- Disable parallel execution for integration tests to avoid port conflicts -->
+    <DisableParallelization>false</DisableParallelization>
+  </RunConfiguration>
+  
+  <MSTest>
+    <!-- Enable parallel execution for compatible tests -->
+    <Parallelize>
+      <Workers>2</Workers>
+      <Scope>Method</Scope>
+    </Parallelize>
+    
+    <!-- Timeout for individual tests (in milliseconds) -->
+    <TestTimeout>300000</TestTimeout>
+    
+    <!-- Capture trace output -->
+    <CaptureTraceOutput>true</CaptureTraceOutput>
+  </MSTest>
+</RunSettings>

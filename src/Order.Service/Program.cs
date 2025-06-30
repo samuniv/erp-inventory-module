@@ -4,9 +4,20 @@ using Microsoft.IdentityModel.Tokens;
 using Order.Service.Data;
 using Order.Service.Services;
 using Order.Service.Events;
+using Order.Service.Observability;
+using Shared.Logging;
+using Shared.Observability;
 using System.Text;
+using Serilog;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore;
+
+// Configure Serilog early in the application startup
+Log.Logger = LoggingConfiguration.CreateLogger("Order.Service");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Use Serilog
+builder.Host.UseSerilog();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -31,6 +42,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+
+// Configure OpenTelemetry with shared configuration
+builder.Services.AddObservability(
+    serviceName: "Order.Service",
+    serviceVersion: "1.0.0",
+    environment: builder.Environment.EnvironmentName,
+    configureTracing: tracing => tracing
+        .AddSource("Order.Service"),
+    configureMetrics: metrics => metrics
+        .AddMeter("Order.Service"));
+
+// Add custom metrics
+builder.Services.AddSingleton<OrderMetrics>();
 
 // Add Entity Framework with PostgreSQL
 builder.Services.AddDbContext<OrderDbContext>(options =>
@@ -72,6 +96,12 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+// Add logging middleware
+app.UseRequestResponseLogging();
+
+// Add observability middleware
+app.UseObservabilityMiddleware();
+
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -80,6 +110,9 @@ app.MapControllers();
 
 // Map health checks
 app.MapHealthChecks("/health");
+
+// Map metrics endpoint for Prometheus
+app.MapPrometheusScrapingEndpoint("/metrics");
 
 // Add a simple endpoint to test the service
 app.MapGet("/", () => "Order Service - Running")
@@ -93,7 +126,19 @@ using (var scope = app.Services.CreateScope())
     await DbInitializer.InitializeAsync(context);
 }
 
-app.Run();
+try
+{
+    Log.Information("Starting Order Service");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Order Service terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 // Make Program class accessible for testing
 public partial class Program { }

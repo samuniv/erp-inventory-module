@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Polly.Extensions.Http;
 
 namespace Shared.Resilience;
 
@@ -23,6 +24,17 @@ public static class ResilienceExtensions
         services.AddHttpClient("Default", client =>
         {
             client.Timeout = options.HttpTimeout;
+        });
+
+        // Add resilient HTTP client with retry and circuit breaker policies
+        services.AddHttpClient("ResilientClient", client =>
+        {
+            client.Timeout = options.HttpTimeout;
+        })
+        .AddPolicyHandler((serviceProvider, request) =>
+        {
+            var logger = serviceProvider.GetRequiredService<ILogger<object>>();
+            return PollyPolicies.GetHttpRetryAndCircuitBreakerPolicy(logger, "ResilientClient");
         });
 
         // Add named HTTP clients for specific services if needed

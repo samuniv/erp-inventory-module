@@ -2,11 +2,30 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Shared.Resilience;
+using Shared.Logging;
+using Shared.Observability;
+using Serilog;
+
+// Configure Serilog early in the application startup
+Log.Logger = LoggingConfiguration.CreateLogger("Gateway.API");
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Use Serilog
+builder.Host.UseSerilog();
+
 // Add services to the container
 builder.Services.AddOpenApi();
+
+// Configure OpenTelemetry with shared configuration
+builder.Services.AddObservability(
+    serviceName: "Gateway.API",
+    serviceVersion: "1.0.0",
+    environment: builder.Environment.EnvironmentName,
+    configureTracing: tracing => tracing
+        .AddSource("Gateway.API"),
+    configureMetrics: metrics => metrics
+        .AddMeter("Gateway.API"));
 
 // Add resilient HTTP clients for downstream services
 builder.Services.AddResilientHttpClients(options =>
@@ -81,6 +100,12 @@ if (app.Environment.IsDevelopment())
 // Use CORS
 app.UseCors("AllowAngularApp");
 
+// Add logging middleware
+app.UseRequestResponseLogging();
+
+// Add observability middleware
+app.UseObservabilityMiddleware();
+
 // Use authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();
@@ -91,9 +116,24 @@ app.MapReverseProxy();
 // Map health checks
 app.MapHealthChecks("/health");
 
+// Map metrics endpoint for Prometheus
+app.MapPrometheusScrapingEndpoint("/metrics");
+
 // Add a simple endpoint to test the gateway
 app.MapGet("/", () => "ERP Inventory Module API Gateway - Running")
    .WithName("GatewayStatus")
    .WithTags("Gateway");
 
-app.Run();
+try
+{
+    Log.Information("Starting Gateway API");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Gateway API terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

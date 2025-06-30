@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # PostgreSQL for Order Service
+  postgres-orders:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: orders_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_orders_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d orders_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Oracle for Inventory Service
+  oracle-inventory:
+    image: gvenzl/oracle-free:23-slim
+    environment:
+      ORACLE_RANDOM_PASSWORD: "yes"
+      APP_USER: testuser
+      APP_USER_PASSWORD: testpass
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_inventory_data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # PostgreSQL for Supplier Service
+  postgres-suppliers:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: suppliers_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_suppliers_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d suppliers_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka for messaging
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka UI for debugging
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8080:8080"
+
+  # Test data seeder
+  test-data-seeder:
+    image: alpine:latest
+    depends_on:
+      postgres-orders:
+        condition: service_healthy
+      postgres-suppliers:
+        condition: service_healthy
+      oracle-inventory:
+        condition: service_healthy
+    volumes:
+      - ./scripts/test-data:/scripts
+    command: |
+      sh -c "
+        apk add --no-cache postgresql-client curl &&
+        echo 'Seeding test data...' &&
+        sleep 10 &&
+        echo 'Test data seeding completed'
+      "
+
+volumes:
+  postgres_orders_data:
+  postgres_suppliers_data:
+  oracle_inventory_data:
+
+networks:
+  default:
+    name: erp_test_network

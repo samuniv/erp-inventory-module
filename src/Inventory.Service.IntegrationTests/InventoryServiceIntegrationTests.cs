@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Inventory.Service.IntegrationTests;
 
+[Collection("Oracle Integration Tests")]
 public class InventoryServiceIntegrationTests : IClassFixture<InventoryIntegrationTestFixture>
 {
     private readonly InventoryIntegrationTestFixture _fixture;

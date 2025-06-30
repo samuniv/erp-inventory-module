@@ -3,9 +3,11 @@ using System.Net.Http.Json;
 using Supplier.Service.DTOs;
 using Supplier.Service.IntegrationTests.Fixtures;
 using Supplier.Service.Application.Queries;
+using Xunit;
 
 namespace Supplier.Service.IntegrationTests;
 
+[Collection("Oracle Integration Tests")]
 public class SupplierIntegrationTests : IClassFixture<SupplierIntegrationTestFixture>
 {
     private readonly SupplierIntegrationTestFixture _fixture;
@@ -14,7 +16,7 @@ public class SupplierIntegrationTests : IClassFixture<SupplierIntegrationTestFix
     public SupplierIntegrationTests(SupplierIntegrationTestFixture fixture)
     {
         _fixture = fixture;
-        _client = _fixture.CreateClient();
+        _client = _fixture.Client;
     }
 
     [Fact]

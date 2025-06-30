@@ -1,0 +1,158 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    services:
+      docker:
+        image: docker:20.10-dind
+        options: --privileged
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Run unit tests
+      run: |
+        dotnet test --no-build --configuration Release \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage \
+          --logger trx \
+          --verbosity normal \
+          tests/**/bin/Release/**/*Tests.dll \
+          --filter "Category!=Integration"
+      
+    - name: Setup Docker for integration tests
+      run: |
+        # Ensure Docker daemon is running
+        sudo systemctl start docker
+        sudo usermod -aG docker $USER
+        
+    - name: Run integration tests
+      run: |
+        # Run integration tests with Docker support
+        dotnet test --no-build --configuration Release \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage \
+          --logger trx \
+          --verbosity normal \
+          tests/**/bin/Release/**/*Tests.dll \
+          --filter "Category=Integration" \
+          --settings tests.runsettings
+      env:
+        # Provide additional memory for containers
+        DOTNET_GCHeapCount: 2
+        DOTNET_GCConserveMemory: 1
+        
+    - name: Run end-to-end tests
+      run: |
+        # Run end-to-end tests with full Docker infrastructure
+        dotnet test --no-build --configuration Release \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage \
+          --logger trx \
+          --verbosity normal \
+          tests/EndToEnd.Integration.Tests/bin/Release/**/*.dll
+      env:
+        # Provide sufficient resources for multi-container tests
+        DOTNET_GCHeapCount: 4
+        DOTNET_GCConserveMemory: 1
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          **/*.trx
+          ./coverage/**/*
+          
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        directory: ./coverage
+        fail_ci_if_error: false
+        verbose: true
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Run security audit
+      run: dotnet list package --vulnerable --include-transitive
+      
+    - name: Run dependency check
+      run: |
+        # Check for known vulnerabilities in dependencies
+        dotnet list package --outdated --include-transitive
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker images
+      run: |
+        # Build all service images to ensure Dockerfiles are valid
+        if [ -f "src/Order.Service/Dockerfile" ]; then
+          docker build -t order-service:test src/Order.Service/
+        fi
+        
+        if [ -f "src/Inventory.Service/Dockerfile" ]; then
+          docker build -t inventory-service:test src/Inventory.Service/
+        fi
+        
+        if [ -f "src/Supplier.Service/Dockerfile" ]; then
+          docker build -t supplier-service:test src/Supplier.Service/
+        fi
+        
+        if [ -f "src/Auth.Service/Dockerfile" ]; then
+          docker build -t auth-service:test src/Auth.Service/
+        fi
+        
+        if [ -f "src/Gateway.API/Dockerfile" ]; then
+          docker build -t gateway-api:test src/Gateway.API/
+        fi

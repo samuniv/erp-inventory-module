@@ -8,11 +8,30 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Shared.Resilience;
+using Shared.Logging;
+using Shared.Observability;
+using Serilog;
+
+// Configure Serilog early in the application startup
+Log.Logger = LoggingConfiguration.CreateLogger("Auth.Service");
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Use Serilog
+builder.Host.UseSerilog();
+
 // Add services to the container
 builder.Services.AddOpenApi();
+
+// Configure OpenTelemetry with shared configuration
+builder.Services.AddObservability(
+    serviceName: "Auth.Service",
+    serviceVersion: "1.0.0",
+    environment: builder.Environment.EnvironmentName,
+    configureTracing: tracing => tracing
+        .AddSource("Auth.Service"),
+    configureMetrics: metrics => metrics
+        .AddMeter("Auth.Service"));
 
 // Add database context
 builder.Services.AddDbContext<AuthDbContext>(options =>
@@ -97,6 +116,12 @@ if (app.Environment.IsDevelopment())
 
 // Use CORS
 app.UseCors("AllowAll");
+
+// Add logging middleware
+app.UseRequestResponseLogging();
+
+// Add observability middleware
+app.UseObservabilityMiddleware();
 
 // Use authentication and authorization
 app.UseAuthentication();
@@ -227,9 +252,24 @@ app.MapPost("/api/auth/revoke", async (string refreshToken, IAuthService authSer
 // Health check endpoint
 app.MapHealthChecks("/health");
 
+// Map metrics endpoint for Prometheus
+app.MapPrometheusScrapingEndpoint("/metrics");
+
 // Status endpoint
 app.MapGet("/", () => "Auth Service - Running")
    .WithName("AuthServiceStatus")
    .WithTags("Status");
 
-app.Run();
+try
+{
+    Log.Information("Starting Auth Service");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Auth Service terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

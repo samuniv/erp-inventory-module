@@ -5,12 +5,31 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Shared.Resilience;
+using Shared.Logging;
+using Shared.Observability;
+using Serilog;
+
+// Configure Serilog early in the application startup
+Log.Logger = LoggingConfiguration.CreateLogger("Inventory.Service");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Use Serilog
+builder.Host.UseSerilog();
 
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+// Configure OpenTelemetry with shared configuration
+builder.Services.AddObservability(
+    serviceName: "Inventory.Service",
+    serviceVersion: "1.0.0",
+    environment: builder.Environment.EnvironmentName,
+    configureTracing: tracing => tracing
+        .AddSource("Inventory.Service"),
+    configureMetrics: metrics => metrics
+        .AddMeter("Inventory.Service"));
 
 // Add authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -56,6 +75,12 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+// Add logging middleware
+app.UseRequestResponseLogging();
+
+// Add observability middleware
+app.UseObservabilityMiddleware();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -63,6 +88,9 @@ app.MapControllers();
 
 // Map health checks
 app.MapHealthChecks("/health");
+
+// Map metrics endpoint for Prometheus
+app.MapPrometheusScrapingEndpoint("/metrics");
 
 // Add a simple endpoint to test the service
 app.MapGet("/", () => "Inventory Service - Running")
@@ -76,7 +104,19 @@ using (var scope = app.Services.CreateScope())
     await DbInitializer.InitializeAsync(context);
 }
 
-app.Run();
+try
+{
+    Log.Information("Starting Inventory Service");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Inventory Service terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 // Make Program class accessible for testing
 public partial class Program { }
