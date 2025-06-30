@@ -499,7 +499,7 @@
           5,
           8
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -507,7 +507,7 @@
             "description": "Develop an Angular service (`SupplierService`) to handle all HTTP requests to the supplier API endpoints. This service will manage creating, reading, updating, and deleting supplier data.",
             "dependencies": [],
             "details": "Define the Supplier model/interface. Implement methods using Angular's HttpClient for getSuppliers(), createSupplier(supplier), updateSupplier(supplier), and deleteSupplier(id). Ensure proper error handling is in place for all API calls.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -517,7 +517,7 @@
               1
             ],
             "details": "Use the SupplierService to fetch and display supplier data in a MatTable. Set up MatTableDataSource with sorting and pagination. Implement a text input that filters the table data based on user input.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -525,7 +525,7 @@
             "description": "Develop a component containing a reactive form for creating and editing supplier details. This form will be presented to the user inside an Angular Material `MatDialog`.",
             "dependencies": [],
             "details": "Use Angular's FormBuilder to create the form with fields for supplier name, contact person, email, phone, and address. Implement appropriate validators for each field. The component should be configured to run within a MatDialog.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -535,8 +535,8 @@
               2,
               3
             ],
-            "details": "Add an 'Add Supplier' button to the list component that opens the form dialog. Add 'Edit' and 'Delete' buttons to each row in the MatTable. The 'Edit' button should open the dialog pre-filled with the selected supplier's data. The 'Delete' button should prompt for confirmation before calling the delete method in the SupplierService. After any action, the table should refresh to show the latest data.",
-            "status": "pending"
+            "details": "Add an 'Add Supplier' button to the list component that opens the form dialog. Add 'Edit' and 'Delete' buttons to each row in the MatTable. The 'Edit' button should open the dialog pre-filled with the selected supplier's data. The 'Delete' button should prompt for confirmation before calling the delete method in the SupplierService. After any action, the table should refresh to show the latest data.\n<info added on 2025-06-29T19:35:08.444Z>\nThe integration of all CRUD operations for the supplier module is complete. The SupplierFormDialogComponent has been successfully connected to the SupplierListComponent, enabling create and update operations. Delete functionality with a confirmation dialog has also been implemented. Additional features include an active/inactive status toggle, comprehensive error handling with user-friendly messages, and loading indicators during API calls. The reactive form includes full validation with real-time feedback. The UI is styled using Material Design, features a responsive layout, and provides user feedback via styled snackbars for success and error notifications. The implementation is considered production-ready, following architectural guidelines with proper TypeScript typing and Observable patterns, and brings the supplier module to functional parity with the inventory module. A known, but separate, issue exists with the Yarn PnP build configuration.\n</info added on 2025-06-29T19:35:08.444Z>",
+            "status": "done"
           }
         ]
       },
@@ -552,7 +552,7 @@
           9,
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -560,7 +560,7 @@
             "description": "Integrate the Angular Material MatStepper component to create the basic structure for the multi-step order wizard. This includes importing necessary modules and setting up the main component with placeholder steps.",
             "dependencies": [],
             "details": "Import MatStepperModule and MatButtonModule into the OrderModule. Create a new OrderWizardComponent and add a <mat-horizontal-stepper> to its template. Define three initial <mat-step> elements for 'Customer Info', 'Item Selection', and 'Review & Submit'.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -570,7 +570,7 @@
               1
             ],
             "details": "Generate an 'OrderStateService' using the Angular CLI. Implement a BehaviorSubject to hold the order data model. Create public methods like 'updateCustomerInfo(data)', 'updateItems(data)', and an observable 'orderState$' to allow components to subscribe to state changes.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -581,7 +581,7 @@
               2
             ],
             "details": "Create separate components for each step (e.g., CustomerInfoStepComponent, ItemSelectionStepComponent). Each component will define a FormGroup for its fields. On form value changes, call the appropriate method in OrderStateService to update the shared state. The Review step will subscribe to the service to display a summary.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -592,7 +592,7 @@
               3
             ],
             "details": "In the review step component, add a 'Submit' button. The button's click handler will retrieve the complete order object from the OrderStateService. It will then make an HTTP POST request to the backend API endpoint. Implement logic to handle both successful submission and potential errors.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -817,7 +817,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-29T19:13:00.616Z",
+      "updated": "2025-06-30T03:45:47.560Z",
       "description": "Tasks for master context"
     }
   }

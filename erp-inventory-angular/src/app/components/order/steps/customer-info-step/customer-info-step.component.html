@@ -1,0 +1,115 @@
+<div class="customer-info-step" [formGroup]="customerFormGroup">
+  <mat-card class="step-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="step-icon">person</mat-icon>
+        Customer Information
+      </mat-card-title>
+      <mat-card-subtitle
+        >Please provide customer details for this order</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="form-container">
+        <!-- Customer Name -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Customer Name *</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            placeholder="Enter customer name"
+            maxlength="100"
+          />
+          <mat-icon matSuffix>person</mat-icon>
+          <mat-hint>Full name of the customer placing the order</mat-hint>
+          <mat-error
+            *ngIf="formControls['name'].invalid && formControls['name'].touched"
+          >
+            {{ getErrorMessage("name") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Email Address -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email Address *</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            placeholder="Enter email address"
+            maxlength="100"
+          />
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-hint>Used for order confirmation and updates</mat-hint>
+          <mat-error
+            *ngIf="
+              formControls['email'].invalid && formControls['email'].touched
+            "
+          >
+            {{ getErrorMessage("email") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Phone Number -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Phone Number</mat-label>
+          <input
+            matInput
+            type="tel"
+            formControlName="phone"
+            placeholder="Enter phone number"
+            maxlength="20"
+          />
+          <mat-icon matSuffix>phone</mat-icon>
+          <mat-hint>Optional contact number</mat-hint>
+          <mat-error
+            *ngIf="
+              formControls['phone'].invalid && formControls['phone'].touched
+            "
+          >
+            {{ getErrorMessage("phone") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Notes -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes</mat-label>
+          <textarea
+            matInput
+            formControlName="notes"
+            placeholder="Any special instructions or notes"
+            rows="3"
+            maxlength="500"
+          >
+          </textarea>
+          <mat-icon matSuffix>note</mat-icon>
+          <mat-hint>Optional special instructions for this order</mat-hint>
+          <mat-error
+            *ngIf="
+              formControls['notes'].invalid && formControls['notes'].touched
+            "
+          >
+            {{ getErrorMessage("notes") }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+
+    <!-- Form Status Display -->
+    <mat-card-actions class="form-status">
+      <div
+        class="status-indicator"
+        [class.valid]="isFormValid"
+        [class.invalid]="!isFormValid && isFormTouched"
+      >
+        <mat-icon>{{ isFormValid ? "check_circle" : "error" }}</mat-icon>
+        <span>{{
+          isFormValid
+            ? "Customer information is complete"
+            : "Please complete required fields"
+        }}</span>
+      </div>
+    </mat-card-actions>
+  </mat-card>
+</div>

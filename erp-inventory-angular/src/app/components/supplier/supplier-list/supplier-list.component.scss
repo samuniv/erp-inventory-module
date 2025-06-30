@@ -1,0 +1,272 @@
+.supplier-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-card {
+  margin-bottom: 24px;
+
+  mat-card-header {
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 28px;
+      font-weight: 500;
+      color: #1976d2;
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    mat-card-subtitle {
+      margin-top: 8px;
+      font-size: 16px;
+      color: #666;
+    }
+  }
+}
+
+.filter-card {
+  margin-bottom: 24px;
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 200px auto;
+    gap: 16px;
+    align-items: end;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  .filter-field {
+    width: 100%;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    @media (max-width: 768px) {
+      justify-content: stretch;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+
+  .add-button {
+    white-space: nowrap;
+  }
+}
+
+.table-card {
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+
+    p {
+      margin-top: 16px;
+      color: #666;
+      font-size: 16px;
+    }
+  }
+
+  .table-container {
+    overflow: auto;
+
+    .supplier-table {
+      width: 100%;
+      min-width: 800px;
+
+      .mat-mdc-header-cell {
+        font-weight: 600;
+        color: #1976d2;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      .mat-mdc-cell {
+        padding: 16px 8px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .supplier-name {
+        .name {
+          font-weight: 500;
+          color: #333;
+        }
+      }
+
+      .email-link,
+      .phone-link {
+        color: #1976d2;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .address {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .actions-header {
+        text-align: center;
+        width: 140px;
+      }
+
+      .actions-cell {
+        text-align: center;
+
+        .action-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 4px;
+        }
+      }
+
+      .mat-mdc-row {
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        &.inactive-row {
+          background-color: #fafafa;
+          opacity: 0.7;
+        }
+      }
+    }
+  }
+
+  .no-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    text-align: center;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #bdbdbd;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-weight: 500;
+    }
+
+    p {
+      margin: 0 0 24px 0;
+      color: #666;
+      font-size: 16px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .supplier-container {
+    padding: 16px;
+  }
+
+  .header-card mat-card-header mat-card-title {
+    font-size: 24px;
+
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .table-card .table-container .supplier-table {
+    min-width: 600px;
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+      padding: 12px 6px;
+      font-size: 14px;
+    }
+
+    .address {
+      font-size: 12px;
+    }
+  }
+}
+
+// Material Design chip styling
+.mat-mdc-chip {
+  font-weight: 500;
+
+  &.mat-primary {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+  }
+
+  &.mat-warn {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+}
+
+// Table row animations
+.mat-mdc-row {
+  transition: background-color 0.2s ease;
+}
+
+// Action button styling
+.action-buttons button {
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Loading spinner
+mat-progress-spinner {
+  margin: 0 auto;
+}
+
+// Snackbar styling
+:host ::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50;
+    color: white;
+  }
+
+  .error-snackbar {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .warning-snackbar {
+    background-color: #ff9800;
+    color: white;
+  }
+
+  .info-snackbar {
+    background-color: #2196f3;
+    color: white;
+  }
+}

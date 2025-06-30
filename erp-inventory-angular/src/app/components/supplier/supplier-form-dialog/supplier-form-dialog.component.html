@@ -1,0 +1,171 @@
+<div class="supplier-form-dialog">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>{{
+        data.mode === "create" ? "add_business" : "edit_business"
+      }}</mat-icon>
+      {{ dialogTitle }}
+    </h2>
+    <button
+      mat-icon-button
+      mat-dialog-close
+      class="close-button"
+      [disabled]="isSubmitting"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Dialog Content -->
+  <div mat-dialog-content class="dialog-content">
+    <form
+      [formGroup]="supplierForm"
+      (ngSubmit)="onSubmit()"
+      class="supplier-form"
+    >
+      <!-- Supplier Name -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Supplier Name *</mat-label>
+        <input
+          matInput
+          formControlName="name"
+          placeholder="Enter supplier company name"
+          [class.error-input]="isFieldInvalid('name')"
+        />
+        <mat-icon matSuffix>business</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('name')">
+          {{ getFieldErrorMessage("name") }}
+        </mat-error>
+        <mat-hint>The official name of the supplier company</mat-hint>
+      </mat-form-field>
+
+      <!-- Contact Person -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Contact Person *</mat-label>
+        <input
+          matInput
+          formControlName="contactPerson"
+          placeholder="Enter primary contact name"
+          [class.error-input]="isFieldInvalid('contactPerson')"
+        />
+        <mat-icon matSuffix>person</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('contactPerson')">
+          {{ getFieldErrorMessage("contactPerson") }}
+        </mat-error>
+        <mat-hint>Primary contact person at the supplier</mat-hint>
+      </mat-form-field>
+
+      <!-- Email -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email Address *</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          placeholder="Enter email address"
+          [class.error-input]="isFieldInvalid('email')"
+        />
+        <mat-icon matSuffix>email</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('email')">
+          {{ getFieldErrorMessage("email") }}
+        </mat-error>
+        <mat-hint>Primary business email for communication</mat-hint>
+      </mat-form-field>
+
+      <!-- Phone -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phone Number *</mat-label>
+        <input
+          matInput
+          type="tel"
+          formControlName="phone"
+          placeholder="Enter phone number"
+          [class.error-input]="isFieldInvalid('phone')"
+        />
+        <mat-icon matSuffix>phone</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('phone')">
+          {{ getFieldErrorMessage("phone") }}
+        </mat-error>
+        <mat-hint>Include country code for international numbers</mat-hint>
+      </mat-form-field>
+
+      <!-- Address -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Business Address *</mat-label>
+        <textarea
+          matInput
+          formControlName="address"
+          placeholder="Enter complete business address"
+          rows="3"
+          [class.error-input]="isFieldInvalid('address')"
+        >
+        </textarea>
+        <mat-icon matSuffix>location_on</mat-icon>
+        <mat-error *ngIf="isFieldInvalid('address')">
+          {{ getFieldErrorMessage("address") }}
+        </mat-error>
+        <mat-hint
+          >Complete business address including city, state, and postal
+          code</mat-hint
+        >
+      </mat-form-field>
+
+      <!-- Active Status -->
+      <div class="checkbox-container">
+        <mat-checkbox formControlName="isActive" class="active-checkbox">
+          <span class="checkbox-label">Active Supplier</span>
+        </mat-checkbox>
+        <div class="checkbox-hint">
+          Inactive suppliers will be hidden from most lists but remain
+          accessible for historical data
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Dialog Actions -->
+  <div mat-dialog-actions class="dialog-actions">
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="isSubmitting"
+      class="cancel-button"
+    >
+      <mat-icon>cancel</mat-icon>
+      Cancel
+    </button>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      (click)="onSubmit()"
+      [disabled]="supplierForm.invalid || isSubmitting"
+      class="submit-button"
+    >
+      <mat-progress-spinner
+        *ngIf="isSubmitting"
+        diameter="20"
+        mode="indeterminate"
+        color="primary"
+      >
+      </mat-progress-spinner>
+      <mat-icon *ngIf="!isSubmitting">
+        {{ data.mode === "create" ? "add" : "save" }}
+      </mat-icon>
+      {{ submitButtonText }}
+    </button>
+  </div>
+
+  <!-- Form Debug Info (only in development) -->
+  <!-- 
+  <div class="debug-info" style="margin-top: 16px; padding: 16px; background: #f5f5f5; border-radius: 4px;">
+    <h4>Form Debug</h4>
+    <p>Form Valid: {{ supplierForm.valid }}</p>
+    <p>Form Value: {{ supplierForm.value | json }}</p>
+    <p>Form Errors: {{ supplierForm.errors | json }}</p>
+  </div>
+  -->
+</div>

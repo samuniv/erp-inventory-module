@@ -1,0 +1,253 @@
+<div class="item-selection-step">
+  <!-- Search and Summary Header -->
+  <mat-card class="search-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="step-icon">inventory</mat-icon>
+        Select Items for Order
+      </mat-card-title>
+      <mat-card-subtitle
+        >Choose items from available inventory</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Search Form -->
+      <div class="search-container" [formGroup]="searchFormGroup">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Items</mat-label>
+          <input
+            matInput
+            formControlName="searchTerm"
+            placeholder="Search by name, SKU, or description"
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <!-- Selection Summary -->
+      <div class="selection-summary" *ngIf="totalSelectedItems > 0">
+        <mat-chip-listbox class="summary-chips">
+          <mat-chip class="summary-chip" color="accent" highlighted>
+            <mat-icon>shopping_cart</mat-icon>
+            {{ totalSelectedItems }} item(s) selected
+          </mat-chip>
+          <mat-chip class="summary-chip" color="primary" highlighted>
+            <mat-icon>attach_money</mat-icon>
+            {{ formatCurrency(totalOrderValue) }}
+          </mat-chip>
+        </mat-chip-listbox>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Available Items Table -->
+  <mat-card class="items-card">
+    <mat-card-header>
+      <mat-card-title>Available Items</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="table-container">
+        <div class="loading-container" *ngIf="isLoadingItems">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading inventory items...</p>
+        </div>
+
+        <mat-table
+          [dataSource]="filteredItems"
+          *ngIf="!isLoadingItems"
+          class="items-table"
+        >
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef>Item Name</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              <div class="item-name">
+                <strong>{{ item.name }}</strong>
+                <small *ngIf="item.description">{{ item.description }}</small>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <!-- SKU Column -->
+          <ng-container matColumnDef="sku">
+            <mat-header-cell *matHeaderCellDef>SKU</mat-header-cell>
+            <mat-cell *matCellDef="let item">{{ item.sku }}</mat-cell>
+          </ng-container>
+
+          <!-- Price Column -->
+          <ng-container matColumnDef="price">
+            <mat-header-cell *matHeaderCellDef>Price</mat-header-cell>
+            <mat-cell *matCellDef="let item">{{
+              formatCurrency(item.price)
+            }}</mat-cell>
+          </ng-container>
+
+          <!-- Stock Level Column -->
+          <ng-container matColumnDef="stockLevel">
+            <mat-header-cell *matHeaderCellDef>Available</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              <span
+                [class.low-stock]="item.stockLevel <= item.reorderThreshold"
+              >
+                {{ item.stockLevel }}
+              </span>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+            <mat-cell *matCellDef="let item">
+              <div class="action-buttons">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="addItemToOrder(item, 1)"
+                  [disabled]="item.stockLevel <= 0 || isItemSelected(item)"
+                  class="add-button"
+                >
+                  <mat-icon>add_shopping_cart</mat-icon>
+                  {{ isItemSelected(item) ? "Added" : "Add" }}
+                </button>
+                <div class="quantity-display" *ngIf="isItemSelected(item)">
+                  <mat-icon
+                    matBadge="{{ getSelectedItemQuantity(item) }}"
+                    matBadgeColor="accent"
+                  >
+                    check_circle
+                  </mat-icon>
+                </div>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            [class.selected-row]="isItemSelected(row)"
+          ></mat-row>
+        </mat-table>
+
+        <div
+          class="no-items"
+          *ngIf="!isLoadingItems && filteredItems.length === 0"
+        >
+          <mat-icon class="no-items-icon">inventory_2</mat-icon>
+          <p>No items found matching your search.</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Selected Items Summary -->
+  <mat-card class="selected-items-card" *ngIf="selectedItems.length > 0">
+    <mat-card-header>
+      <mat-card-title
+        >Selected Items ({{ selectedItems.length }})</mat-card-title
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-table [dataSource]="selectedItems" class="selected-items-table">
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef>Item</mat-header-cell>
+          <mat-cell *matCellDef="let item">{{
+            item.inventoryItemName
+          }}</mat-cell>
+        </ng-container>
+
+        <!-- Quantity Column -->
+        <ng-container matColumnDef="quantity">
+          <mat-header-cell *matHeaderCellDef>Quantity</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <div class="quantity-controls">
+              <button
+                mat-icon-button
+                (click)="updateItemQuantity(item, item.selectedQuantity - 1)"
+                [disabled]="item.selectedQuantity <= 1"
+              >
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="quantity-value">{{ item.selectedQuantity }}</span>
+              <button
+                mat-icon-button
+                (click)="updateItemQuantity(item, item.selectedQuantity + 1)"
+                [disabled]="item.selectedQuantity >= item.availableQuantity"
+              >
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Unit Price Column -->
+        <ng-container matColumnDef="unitPrice">
+          <mat-header-cell *matHeaderCellDef>Unit Price</mat-header-cell>
+          <mat-cell *matCellDef="let item">{{
+            formatCurrency(item.unitPrice)
+          }}</mat-cell>
+        </ng-container>
+
+        <!-- Total Price Column -->
+        <ng-container matColumnDef="totalPrice">
+          <mat-header-cell *matHeaderCellDef>Total</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <strong>{{ formatCurrency(item.totalPrice) }}</strong>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="removeItemFromOrder(item)"
+              matTooltip="Remove from order"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row
+          *matHeaderRowDef="selectedDisplayedColumns"
+        ></mat-header-row>
+        <mat-row
+          *matRowDef="let row; columns: selectedDisplayedColumns"
+        ></mat-row>
+      </mat-table>
+
+      <!-- Order Total -->
+      <div class="order-total">
+        <mat-divider></mat-divider>
+        <div class="total-row">
+          <span class="total-label">Order Total:</span>
+          <span class="total-amount">{{
+            formatCurrency(totalOrderValue)
+          }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Selection Status -->
+  <div class="selection-status">
+    <div
+      class="status-indicator"
+      [class.valid]="isSelectionValid"
+      [class.invalid]="!isSelectionValid"
+    >
+      <mat-icon>{{ isSelectionValid ? "check_circle" : "error" }}</mat-icon>
+      <span>{{
+        isSelectionValid
+          ? "Items selected for order"
+          : "Please select at least one item"
+      }}</span>
+    </div>
+  </div>
+</div>

@@ -27,6 +27,54 @@ export const routes: Routes = [
         component: DashboardComponent,
         title: 'Dashboard - ERP Inventory System',
       },
+      // Inventory Management
+      {
+        path: 'inventory',
+        loadComponent: () =>
+          import(
+            './components/inventory/inventory-list/inventory-list.component'
+          ).then((m) => m.InventoryListComponent),
+        title: 'Inventory - ERP Inventory System',
+      },
+      // Supplier Management
+      {
+        path: 'suppliers',
+        loadComponent: () =>
+          import(
+            './components/supplier/supplier-list/supplier-list.component'
+          ).then((m) => m.SupplierListComponent),
+        title: 'Suppliers - ERP Inventory System',
+      },
+      // Order Management
+      {
+        path: 'orders',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./components/order/order-list/order-list.component').then(
+                (m) => m.OrderListComponent
+              ),
+            title: 'Orders - ERP Inventory System',
+          },
+          {
+            path: 'new',
+            loadComponent: () =>
+              import(
+                './components/order/order-wizard/order-wizard.component'
+              ).then((m) => m.OrderWizardComponent),
+            title: 'Create Order - ERP Inventory System',
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                './components/order/order-detail/order-detail.component'
+              ).then((m) => m.OrderDetailComponent),
+            title: 'Order Details - ERP Inventory System',
+          },
+        ],
+      },
       // TODO: Lazy-loaded feature modules (uncomment when components are created)
       // {
       //   path: 'inventory',

@@ -1,0 +1,224 @@
+<div class="supplier-container">
+  <!-- Header -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>business</mat-icon>
+        Supplier Management
+      </mat-card-title>
+      <mat-card-subtitle>
+        Manage your suppliers, contact information, and business relationships
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Filter Controls -->
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="filter-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Search suppliers</mat-label>
+          <input
+            matInput
+            [formControl]="searchControl"
+            placeholder="Search by name, contact person, or email"
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [formControl]="statusControl">
+            <mat-option value="">All Status</mat-option>
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="inactive">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="filter-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="onAddSupplier()"
+            class="add-button"
+          >
+            <mat-icon>add</mat-icon>
+            Add Supplier
+          </button>
+
+          <button
+            mat-stroked-button
+            (click)="clearFilters()"
+            matTooltip="Clear all filters"
+          >
+            <mat-icon>clear</mat-icon>
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Data Table -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="50"
+        ></mat-progress-spinner>
+        <p>Loading suppliers...</p>
+      </div>
+
+      <!-- Data Table -->
+      <div *ngIf="!isLoading" class="table-container">
+        <table
+          mat-table
+          [dataSource]="dataSource"
+          class="supplier-table"
+          matSort
+        >
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Supplier Name
+            </th>
+            <td mat-cell *matCellDef="let supplier">
+              <div class="supplier-name">
+                <span class="name">{{ supplier.name }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Contact Person Column -->
+          <ng-container matColumnDef="contactPerson">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              Contact Person
+            </th>
+            <td mat-cell *matCellDef="let supplier">
+              {{ supplier.contactPerson }}
+            </td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+            <td mat-cell *matCellDef="let supplier">
+              <a [href]="'mailto:' + supplier.email" class="email-link">{{
+                supplier.email
+              }}</a>
+            </td>
+          </ng-container>
+
+          <!-- Phone Column -->
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef>Phone</th>
+            <td mat-cell *matCellDef="let supplier">
+              <a [href]="'tel:' + supplier.phone" class="phone-link">{{
+                supplier.phone
+              }}</a>
+            </td>
+          </ng-container>
+
+          <!-- Address Column -->
+          <ng-container matColumnDef="address">
+            <th mat-header-cell *matHeaderCellDef>Address</th>
+            <td mat-cell *matCellDef="let supplier">
+              <span class="address" [matTooltip]="supplier.address">
+                {{
+                  supplier.address.length > 30
+                    ? (supplier.address | slice : 0 : 30) + "..."
+                    : supplier.address
+                }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let supplier">
+              <mat-chip [color]="getStatusColor(supplier.isActive)" selected>
+                {{ getStatusText(supplier.isActive) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-header">
+              Actions
+            </th>
+            <td mat-cell *matCellDef="let supplier" class="actions-cell">
+              <div class="action-buttons">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  (click)="onEditSupplier(supplier)"
+                  matTooltip="Edit supplier"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  [color]="supplier.isActive ? 'warn' : 'accent'"
+                  (click)="onToggleStatus(supplier)"
+                  [matTooltip]="
+                    supplier.isActive
+                      ? 'Deactivate supplier'
+                      : 'Activate supplier'
+                  "
+                >
+                  <mat-icon>{{
+                    supplier.isActive ? "toggle_off" : "toggle_on"
+                  }}</mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="onDeleteSupplier(supplier)"
+                  matTooltip="Delete supplier"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            [class.inactive-row]="!row.isActive"
+          ></tr>
+        </table>
+
+        <!-- No Data Message -->
+        <div *ngIf="dataSource.data.length === 0 && !isLoading" class="no-data">
+          <mat-icon>business</mat-icon>
+          <h3>No suppliers found</h3>
+          <p>Get started by adding your first supplier.</p>
+          <button mat-raised-button color="primary" (click)="onAddSupplier()">
+            <mat-icon>add</mat-icon>
+            Add First Supplier
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        *ngIf="!isLoading && dataSource.data.length > 0"
+        [length]="totalCount"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        [pageIndex]="currentPage"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

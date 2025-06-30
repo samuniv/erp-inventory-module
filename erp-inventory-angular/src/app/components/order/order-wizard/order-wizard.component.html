@@ -1,0 +1,277 @@
+<div class="order-wizard-container">
+  <!-- Header -->
+  <div class="wizard-header">
+    <mat-card class="header-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>shopping_cart</mat-icon>
+          Create New Order
+        </mat-card-title>
+        <mat-card-subtitle>
+          Follow the steps below to create a new order
+        </mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
+  </div>
+
+  <!-- Stepper Content -->
+  <div class="stepper-container">
+    <mat-card class="stepper-card">
+      <mat-horizontal-stepper
+        #stepper
+        [linear]="isLinearMode"
+        (selectionChange)="onStepChange($event)"
+        class="order-stepper"
+      >
+        <!-- Step 1: Customer Information -->
+        <mat-step
+          [stepControl]="customerFormGroup"
+          errorMessage="Customer information is required"
+        >
+          <form [formGroup]="customerFormGroup" class="step-form">
+            <ng-template matStepLabel>Customer Information</ng-template>
+
+            <div class="step-content">
+              <div class="step-title">
+                <mat-icon>person</mat-icon>
+                <h3>Customer Details</h3>
+              </div>
+
+              <div class="form-grid">
+                <!-- Customer Name -->
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Customer Name *</mat-label>
+                  <input
+                    matInput
+                    formControlName="name"
+                    placeholder="Enter customer full name"
+                    [class.error-input]="
+                      customerFormGroup.get('name')?.invalid &&
+                      customerFormGroup.get('name')?.touched
+                    "
+                  />
+                  <mat-icon matSuffix>person</mat-icon>
+                  <mat-error
+                    *ngIf="customerFormGroup.get('name')?.errors?.['required']"
+                  >
+                    Customer name is required
+                  </mat-error>
+                  <mat-error
+                    *ngIf="customerFormGroup.get('name')?.errors?.['minlength']"
+                  >
+                    Name must be at least 2 characters long
+                  </mat-error>
+                  <mat-hint
+                    >Full name of the customer placing the order</mat-hint
+                  >
+                </mat-form-field>
+
+                <!-- Email Address -->
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Email Address *</mat-label>
+                  <input
+                    matInput
+                    type="email"
+                    formControlName="email"
+                    placeholder="Enter customer email address"
+                    [class.error-input]="
+                      customerFormGroup.get('email')?.invalid &&
+                      customerFormGroup.get('email')?.touched
+                    "
+                  />
+                  <mat-icon matSuffix>email</mat-icon>
+                  <mat-error
+                    *ngIf="customerFormGroup.get('email')?.errors?.['required']"
+                  >
+                    Email address is required
+                  </mat-error>
+                  <mat-error
+                    *ngIf="customerFormGroup.get('email')?.errors?.['email']"
+                  >
+                    Please enter a valid email address
+                  </mat-error>
+                  <mat-hint
+                    >Customer's primary email for order notifications</mat-hint
+                  >
+                </mat-form-field>
+
+                <!-- Phone Number -->
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Phone Number</mat-label>
+                  <input
+                    matInput
+                    type="tel"
+                    formControlName="phone"
+                    placeholder="Enter phone number (optional)"
+                    [class.error-input]="
+                      customerFormGroup.get('phone')?.invalid &&
+                      customerFormGroup.get('phone')?.touched
+                    "
+                  />
+                  <mat-icon matSuffix>phone</mat-icon>
+                  <mat-hint
+                    >Optional contact number for delivery coordination</mat-hint
+                  >
+                </mat-form-field>
+
+                <!-- Notes -->
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Customer Notes</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="notes"
+                    placeholder="Any special instructions or notes"
+                    rows="3"
+                    [class.error-input]="
+                      customerFormGroup.get('notes')?.invalid &&
+                      customerFormGroup.get('notes')?.touched
+                    "
+                  >
+                  </textarea>
+                  <mat-icon matSuffix>note</mat-icon>
+                  <mat-hint
+                    >Special instructions, delivery preferences, etc.</mat-hint
+                  >
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button
+                mat-button
+                (click)="onCancel()"
+                type="button"
+                class="cancel-button"
+              >
+                <mat-icon>cancel</mat-icon>
+                Cancel
+              </button>
+              <div class="spacer"></div>
+              <button
+                mat-raised-button
+                color="primary"
+                matStepperNext
+                [disabled]="!customerFormGroup.valid"
+                class="next-button"
+              >
+                Next: Select Items
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 2: Item Selection -->
+        <mat-step
+          [stepControl]="itemSelectionFormGroup"
+          errorMessage="At least one item must be selected"
+        >
+          <form [formGroup]="itemSelectionFormGroup" class="step-form">
+            <ng-template matStepLabel>Select Items</ng-template>
+
+            <div class="step-content">
+              <div class="step-title">
+                <mat-icon>inventory_2</mat-icon>
+                <h3>Select Items for Order</h3>
+              </div>
+
+              <!-- Item selection will be implemented in subtask 11.3 -->
+              <div class="item-selection-placeholder">
+                <mat-icon class="large-icon">inventory</mat-icon>
+                <h4>Item Selection Interface</h4>
+                <p>
+                  This section will display available inventory items for
+                  selection.
+                </p>
+                <p><em>To be implemented in the next subtask.</em></p>
+
+                <!-- Temporary mock selection for testing -->
+                <div class="mock-selection">
+                  <button
+                    mat-stroked-button
+                    (click)="addMockItem()"
+                    [disabled]="(orderState?.selectedItems?.length || 0) > 0"
+                  >
+                    Add Mock Item for Testing
+                  </button>
+                </div>
+              </div>
+
+              <!-- Selected Items Summary -->
+              <div
+                class="selected-items-summary"
+                *ngIf="(orderState?.selectedItems?.length || 0) > 0"
+              >
+                <h4>
+                  Selected Items ({{ orderState?.selectedItems?.length || 0 }})
+                </h4>
+                <div class="selected-items-list">
+                  <mat-chip-listbox class="items-chips">
+                    <mat-chip-option
+                      *ngFor="let item of orderState?.selectedItems || []"
+                      [value]="item"
+                      (removed)="removeSelectedItem(item)"
+                    >
+                      {{ item.inventoryItemName }} (Qty:
+                      {{ item.selectedQuantity }})
+                      <mat-icon matChipRemove>cancel</mat-icon>
+                    </mat-chip-option>
+                  </mat-chip-listbox>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button
+                mat-button
+                matStepperPrevious
+                type="button"
+                class="back-button"
+              >
+                <mat-icon>arrow_back</mat-icon>
+                Back
+              </button>
+              <div class="spacer"></div>
+              <button
+                mat-raised-button
+                color="primary"
+                matStepperNext
+                [disabled]="!itemSelectionFormGroup.valid"
+                class="next-button"
+              >
+                Next: Review Order
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Step 3: Review & Submit -->
+        <mat-step [stepControl]="reviewFormGroup">
+          <ng-template matStepLabel>Review & Submit</ng-template>
+
+          <div class="step-content">
+            <!-- Use the OrderReviewStepComponent -->
+            <app-order-review-step
+              [formGroup]="reviewFormGroup"
+            ></app-order-review-step>
+          </div>
+
+          <div class="step-actions">
+            <button
+              mat-button
+              matStepperPrevious
+              type="button"
+              class="back-button"
+            >
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </button>
+            <div class="spacer"></div>
+            <!-- Submit button is now handled by the OrderReviewStepComponent -->
+          </div>
+        </mat-step>
+      </mat-horizontal-stepper>
+    </mat-card>
+  </div>
+</div>

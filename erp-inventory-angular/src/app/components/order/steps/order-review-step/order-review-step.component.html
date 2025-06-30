@@ -1,0 +1,253 @@
+<div class="order-review-step" *ngIf="orderState">
+  <!-- Review Header -->
+  <mat-card class="review-header">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="step-icon">preview</mat-icon>
+        Order Review
+      </mat-card-title>
+      <mat-card-subtitle
+        >Please review your order details before submitting</mat-card-subtitle
+      >
+    </mat-card-header>
+  </mat-card>
+
+  <div class="review-sections">
+    <!-- Customer Information Review -->
+    <mat-card class="review-section customer-section">
+      <mat-card-header>
+        <mat-card-title>Customer Information</mat-card-title>
+        <div class="section-actions">
+          <button
+            mat-icon-button
+            (click)="editCustomerInfo()"
+            matTooltip="Edit customer information"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content *ngIf="customerInfo">
+        <div class="info-grid">
+          <div class="info-item">
+            <mat-icon class="info-icon">person</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Name:</span>
+              <span class="info-value">{{ customerInfo.name }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">email</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Email:</span>
+              <span class="info-value">{{ customerInfo.email }}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="customerInfo.phone">
+            <mat-icon class="info-icon">phone</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Phone:</span>
+              <span class="info-value">{{ customerInfo.phone }}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="customerInfo.notes">
+            <mat-icon class="info-icon">note</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Notes:</span>
+              <span class="info-value">{{ customerInfo.notes }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Order Items Review -->
+    <mat-card class="review-section items-section">
+      <mat-card-header>
+        <mat-card-title
+          >Order Items ({{ selectedItems.length }})</mat-card-title
+        >
+        <div class="section-actions">
+          <button
+            mat-icon-button
+            (click)="editItemSelection()"
+            matTooltip="Edit item selection"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="items-list" *ngIf="selectedItems.length > 0">
+          <div class="order-item" *ngFor="let item of selectedItems">
+            <div class="item-info">
+              <div class="item-name">{{ item.inventoryItemName }}</div>
+              <div class="item-details">
+                <span class="quantity">Qty: {{ item.selectedQuantity }}</span>
+                <span class="separator">×</span>
+                <span class="unit-price">{{
+                  formatCurrency(item.unitPrice)
+                }}</span>
+              </div>
+            </div>
+            <div class="item-total">
+              {{ formatCurrency(item.totalPrice) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="no-items" *ngIf="selectedItems.length === 0">
+          <mat-icon class="no-items-icon">shopping_cart</mat-icon>
+          <p>No items selected</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Order Summary -->
+    <mat-card class="review-section summary-section">
+      <mat-card-header>
+        <mat-card-title>Order Summary</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="summary-details">
+          <!-- Item Count -->
+          <div class="summary-row">
+            <span class="summary-label">
+              <mat-icon>inventory</mat-icon>
+              Total Items:
+            </span>
+            <span class="summary-value">{{ totalItemCount }}</span>
+          </div>
+
+          <!-- Subtotal -->
+          <div class="summary-row">
+            <span class="summary-label">
+              <mat-icon>calculate</mat-icon>
+              Subtotal:
+            </span>
+            <span class="summary-value">{{ formatCurrency(totalAmount) }}</span>
+          </div>
+
+          <!-- Tax -->
+          <div class="summary-row">
+            <span class="summary-label">
+              <mat-icon>percent</mat-icon>
+              Tax (8%):
+            </span>
+            <span class="summary-value">{{ formatCurrency(taxAmount) }}</span>
+          </div>
+
+          <mat-divider class="summary-divider"></mat-divider>
+
+          <!-- Grand Total -->
+          <div class="summary-row total-row">
+            <span class="summary-label">
+              <mat-icon>attach_money</mat-icon>
+              <strong>Total:</strong>
+            </span>
+            <span class="summary-value total-amount">
+              <strong>{{ formatCurrency(grandTotal) }}</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- Order Chips Summary -->
+        <div class="order-chips">
+          <mat-chip-listbox>
+            <mat-chip color="accent" highlighted>
+              <mat-icon>shopping_bag</mat-icon>
+              {{ selectedItems.length }} items
+            </mat-chip>
+            <mat-chip color="primary" highlighted>
+              <mat-icon>attach_money</mat-icon>
+              {{ formatCurrency(grandTotal) }}
+            </mat-chip>
+          </mat-chip-listbox>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Order Validation Status -->
+  <div class="validation-status">
+    <div
+      class="status-indicator"
+      [class.valid]="isOrderValid"
+      [class.invalid]="!isOrderValid"
+    >
+      <mat-icon>{{ isOrderValid ? "check_circle" : "error" }}</mat-icon>
+      <span>
+        {{
+          isOrderValid
+            ? "Order is ready for submission"
+            : "Please complete all required information"
+        }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Submit Order Section -->
+  <mat-card class="submit-section">
+    <mat-card-content>
+      <div class="submit-container">
+        <div class="submit-info">
+          <h3>Ready to place your order?</h3>
+          <p class="submit-description">
+            By clicking "Submit Order", you confirm that all information is
+            correct and authorize the creation of this order.
+          </p>
+
+          <!-- Order Total Display -->
+          <div class="final-total">
+            <span class="total-label">Order Total:</span>
+            <span class="total-amount">{{ formatCurrency(grandTotal) }}</span>
+          </div>
+        </div>
+
+        <!-- Submit Actions -->
+        <div class="submit-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="!canSubmitOrder || isSubmitting"
+            (click)="submitOrder()"
+            class="submit-button"
+          >
+            <mat-icon *ngIf="!isSubmitting">shopping_cart</mat-icon>
+            <mat-spinner *ngIf="isSubmitting" diameter="20" color="accent">
+            </mat-spinner>
+
+            <span class="button-text">
+              {{ isSubmitting ? "Submitting Order..." : "Submit Order" }}
+            </span>
+          </button>
+
+          <button
+            mat-stroked-button
+            color="warn"
+            [disabled]="isSubmitting"
+            (click)="editCustomerInfo()"
+            class="edit-button"
+          >
+            <mat-icon>edit</mat-icon>
+            Edit Order
+          </button>
+        </div>
+
+        <!-- Submission Status -->
+        <div class="submission-status" *ngIf="isSubmitting">
+          <div class="status-message">
+            <mat-icon class="spinning">sync</mat-icon>
+            <span>Processing your order, please wait...</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

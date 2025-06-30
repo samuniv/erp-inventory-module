@@ -131,6 +131,29 @@
         color: rgba(255, 255, 255, 0.7);
       }
     }
+
+    .quick-action-btn {
+      background-color: #ff4081;
+      color: white;
+      font-weight: 500;
+      margin-left: 16px;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+
+      &:hover {
+        background-color: #e91e63;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      transition: all 0.2s ease;
+    }
   }
 
   // Breadcrumb navigation

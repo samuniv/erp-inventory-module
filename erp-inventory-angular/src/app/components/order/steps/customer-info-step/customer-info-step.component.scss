@@ -1,0 +1,66 @@
+.customer-info-step {
+  .step-card {
+    max-width: 600px;
+    margin: 0 auto;
+
+    .mat-card-header {
+      .mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .step-icon {
+          color: #1976d2;
+        }
+      }
+    }
+
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 16px;
+
+      .full-width {
+        width: 100%;
+      }
+    }
+
+    .form-status {
+      padding: 16px 0;
+
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+
+        &.valid {
+          color: #4caf50;
+
+          mat-icon {
+            color: #4caf50;
+          }
+        }
+
+        &.invalid {
+          color: #f44336;
+
+          mat-icon {
+            color: #f44336;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .customer-info-step {
+    .step-card {
+      margin: 0 16px;
+      max-width: none;
+    }
+  }
+}
