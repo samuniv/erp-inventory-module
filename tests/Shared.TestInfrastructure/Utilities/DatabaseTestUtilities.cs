@@ -82,7 +82,7 @@ public static class DatabaseTestUtilities
             }
         }
 
-        logger?.LogWarning("Expected {ExpectedCount} entities of type {EntityType} not found within timeout", 
+        logger?.LogWarning("Expected {ExpectedCount} entities of type {EntityType} not found within timeout",
             expectedCount, typeof(T).Name);
         return new List<T>();
     }
@@ -138,9 +138,9 @@ public static class DatabaseTestUtilities
                 {
                     var removeRangeMethod = typeof(DbSet<>).MakeGenericType(entityType)
                         .GetMethod(nameof(DbSet<object>.RemoveRange), new[] { typeof(IEnumerable<>).MakeGenericType(entityType) });
-                    
+
                     removeRangeMethod!.Invoke(dbSet, new[] { entities });
-                    
+
                     logger?.LogInformation("Cleaned {Count} entities of type {EntityType}", entitiesList.Count, entityType.Name);
                 }
             }
@@ -177,7 +177,7 @@ public static class DatabaseTestUtilities
             catch (Exception ex)
             {
                 lastException = ex;
-                
+
                 if (i == maxRetries)
                 {
                     logger?.LogError(ex, "Database operation failed after {MaxRetries} retries", maxRetries);

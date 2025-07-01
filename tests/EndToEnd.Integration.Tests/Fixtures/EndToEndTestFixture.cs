@@ -18,12 +18,12 @@ namespace EndToEnd.Integration.Tests.Fixtures;
 public class EndToEndTestFixture : IAsyncLifetime
 {
     public IntegrationTestFixture Infrastructure { get; private set; } = null!;
-    
+
     // HTTP clients for each service using direct HTTP calls
     public HttpClient OrderServiceClient { get; private set; } = null!;
     public HttpClient InventoryServiceClient { get; private set; } = null!;
     public HttpClient SupplierServiceClient { get; private set; } = null!;
-    
+
     // Kafka bootstrap address for utilities
     public string KafkaBootstrapAddress { get; private set; } = null!;
 
@@ -39,18 +39,18 @@ public class EndToEndTestFixture : IAsyncLifetime
         // Create HTTP clients that will connect to running services
         // For now, we'll assume services are running on standard ports
         // In a real scenario, you'd want to start the services programmatically
-        
+
         var handler = new HttpClientHandler();
         OrderServiceClient = new HttpClient(handler)
         {
             BaseAddress = new Uri("http://localhost:5001") // Assume Order Service runs on 5001
         };
-        
+
         InventoryServiceClient = new HttpClient(handler)
         {
             BaseAddress = new Uri("http://localhost:5002") // Assume Inventory Service runs on 5002
         };
-        
+
         SupplierServiceClient = new HttpClient(handler)
         {
             BaseAddress = new Uri("http://localhost:5003") // Assume Supplier Service runs on 5003
@@ -67,10 +67,10 @@ public class EndToEndTestFixture : IAsyncLifetime
     {
         // Seed suppliers
         await SeedSuppliersAsync();
-        
+
         // Seed inventory items
         await SeedInventoryAsync();
-        
+
         // Allow time for seeding to complete
         await Task.Delay(2000);
     }
@@ -158,7 +158,7 @@ public class EndToEndTestFixture : IAsyncLifetime
         OrderServiceClient?.Dispose();
         InventoryServiceClient?.Dispose();
         SupplierServiceClient?.Dispose();
-        
+
         if (Infrastructure != null)
         {
             await Infrastructure.DisposeAsync();

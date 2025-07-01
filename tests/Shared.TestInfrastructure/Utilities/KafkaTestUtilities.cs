@@ -30,7 +30,7 @@ public static class KafkaTestUtilities
                 if (result != null)
                 {
                     logger?.LogInformation("Received message from topic {Topic}: {Message}", topic, result.Message.Value);
-                    
+
                     var message = JsonSerializer.Deserialize<T>(result.Message.Value);
                     if (message != null && (predicate == null || predicate(message)))
                     {
@@ -62,9 +62,9 @@ public static class KafkaTestUtilities
         ILogger? logger = null) where T : class
     {
         var json = JsonSerializer.Serialize(message);
-        
+
         logger?.LogInformation("Publishing message to topic {Topic}: {Message}", topic, json);
-        
+
         var kafkaMessage = new Message<string, string>
         {
             Key = key,
@@ -113,9 +113,9 @@ public static class KafkaTestUtilities
                 var result = consumer.Consume(TimeSpan.FromSeconds(1));
                 if (result != null)
                 {
-                    logger?.LogInformation("Received message {Count}/{Expected} from topic {Topic}: {Message}", 
+                    logger?.LogInformation("Received message {Count}/{Expected} from topic {Topic}: {Message}",
                         messages.Count + 1, expectedCount, topic, result.Message.Value);
-                    
+
                     var message = JsonSerializer.Deserialize<T>(result.Message.Value);
                     if (message != null && (predicate == null || predicate(message)))
                     {
@@ -166,9 +166,9 @@ public static class KafkaTestUtilities
                 var result = consumer.Consume(TimeSpan.FromSeconds(1));
                 if (result != null)
                 {
-                    logger?.LogInformation("Received raw message {Count}/{Max} from topic {Topic}: {Message}", 
+                    logger?.LogInformation("Received raw message {Count}/{Max} from topic {Topic}: {Message}",
                         messages.Count + 1, maxMessages, topic, result.Message.Value);
-                    
+
                     messages.Add(result.Message.Value);
                 }
             }

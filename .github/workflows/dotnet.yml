@@ -1,0 +1,364 @@
+name: .NET Backend CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/dotnet.yml"
+      - "*.sln"
+      - "**/*.csproj"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/dotnet.yml"
+      - "*.sln"
+      - "**/*.csproj"
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  SOLUTION_FILE: "ERPInventoryModule.sln"
+
+jobs:
+  build-and-test:
+    name: Build and Unit Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore NuGet packages
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build solution
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration ${{ matrix.configuration }} --no-restore
+
+      - name: Run unit tests
+        run: |
+          dotnet test ${{ env.SOLUTION_FILE }} \
+            --configuration ${{ matrix.configuration }} \
+            --no-build \
+            --filter "FullyQualifiedName!~IntegrationTests" \
+            --logger trx \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.configuration }}
+          path: ./TestResults/*.trx
+          retention-days: 5
+
+      - name: Upload code coverage
+        uses: codecov/codecov-action@v4
+        if: matrix.configuration == 'Release'
+        with:
+          file: ./TestResults/*/coverage.cobertura.xml
+          flags: backend
+          name: dotnet-coverage
+          fail_ci_if_error: false
+
+  integration-tests:
+    name: Integration Tests with Testcontainers
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request'
+
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore NuGet packages
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build solution for integration tests
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+
+      - name: Start Docker daemon
+        run: |
+          sudo systemctl start docker
+          sudo chmod 666 /var/run/docker.sock
+
+      - name: Verify Docker setup
+        run: |
+          docker --version
+          docker info
+          docker ps
+
+      - name: Run integration tests
+        run: |
+          dotnet test ${{ env.SOLUTION_FILE }} \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~IntegrationTests" \
+            --logger trx \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./IntegrationTestResults \
+            --settings ./tests/integration.runsettings
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
+          TESTCONTAINERS_RYUK_DISABLED: true
+          TESTCONTAINERS_CHECKS_DISABLE: true
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: ./IntegrationTestResults/*.trx
+          retention-days: 5
+
+      - name: Upload integration test coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./IntegrationTestResults/*/coverage.cobertura.xml
+          flags: integration-tests
+          name: integration-coverage
+          fail_ci_if_error: false
+
+      - name: Cleanup Docker containers
+        if: always()
+        run: |
+          docker container prune -f
+          docker volume prune -f
+          docker network prune -f
+
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for better analysis
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install SonarCloud scanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Restore packages
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Run SonarCloud analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin \
+            /k:"${{ github.repository_owner }}_erp-inventory-module" \
+            /o:"${{ github.repository_owner }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.exclusions="**/Migrations/**"
+
+          dotnet build ${{ env.SOLUTION_FILE }} --configuration Release
+
+          dotnet test ${{ env.SOLUTION_FILE }} \
+            --configuration Release \
+            --filter "FullyQualifiedName!~IntegrationTests" \
+            --collect:"XPlat Code Coverage" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install security scanning tools
+        run: |
+          dotnet tool install --global security-scan
+          dotnet tool install --global dotnet-outdated-tool
+
+      - name: Restore packages
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Run security scan
+        run: security-scan ${{ env.SOLUTION_FILE }} --export=security-report.json
+
+      - name: Check for outdated packages
+        run: dotnet outdated ${{ env.SOLUTION_FILE }} --output-format json --output outdated-packages.json
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            security-report.json
+            outdated-packages.json
+          retention-days: 30
+
+  package-validation:
+    name: Package and Validate
+    runs-on: ubuntu-latest
+    needs: [build-and-test, code-quality]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore packages
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build for Release
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+
+      - name: Publish Auth Service
+        run: |
+          dotnet publish src/Auth.Service/Auth.Service.csproj \
+            --configuration Release \
+            --output ./publish/auth-service \
+            --no-build
+
+      - name: Publish Inventory Service
+        run: |
+          dotnet publish src/Inventory.Service/Inventory.Service.csproj \
+            --configuration Release \
+            --output ./publish/inventory-service \
+            --no-build
+
+      - name: Publish Order Service
+        run: |
+          dotnet publish src/Order.Service/Order.Service.csproj \
+            --configuration Release \
+            --output ./publish/order-service \
+            --no-build
+
+      - name: Publish Supplier Service
+        run: |
+          dotnet publish src/Supplier.Service/Supplier.Service.csproj \
+            --configuration Release \
+            --output ./publish/supplier-service \
+            --no-build
+
+      - name: Publish Gateway API
+        run: |
+          dotnet publish src/Gateway.API/Gateway.API.csproj \
+            --configuration Release \
+            --output ./publish/gateway-api \
+            --no-build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-services
+          path: ./publish/
+          retention-days: 7
+
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: package-validation
+    if: github.ref == 'refs/heads/main'
+
+    strategy:
+      matrix:
+        service:
+          - { name: auth-service, path: src/Auth.Service }
+          - { name: inventory-service, path: src/Inventory.Service }
+          - { name: order-service, path: src/Order.Service }
+          - { name: supplier-service, path: src/Supplier.Service }
+          - { name: gateway-api, path: src/Gateway.API }
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service.name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.path }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

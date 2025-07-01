@@ -27,7 +27,7 @@ public abstract class ServiceIntegrationTestBase<TStartup, TDbContext> : WebAppl
     protected ServiceIntegrationTestBase(bool usePostgreSql = false, bool useOracle = false, bool useKafka = false)
     {
         Infrastructure = new IntegrationTestFixture(usePostgreSql, useOracle, useKafka);
-        
+
         var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
         Logger = loggerFactory.CreateLogger(GetType());
     }
@@ -36,7 +36,7 @@ public abstract class ServiceIntegrationTestBase<TStartup, TDbContext> : WebAppl
     {
         await Infrastructure.InitializeAsync();
         Client = CreateClient();
-        
+
         // Initialize database if needed
         await InitializeDatabaseAsync();
     }
@@ -51,7 +51,7 @@ public abstract class ServiceIntegrationTestBase<TStartup, TDbContext> : WebAppl
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         builder.ConfigureServices(services =>
         {
             ConfigureTestServices(services);
@@ -129,7 +129,7 @@ public abstract class ServiceIntegrationTestBase<TStartup, TDbContext> : WebAppl
     {
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<TDbContext>();
-        
+
         try
         {
             await context.Database.EnsureCreatedAsync();

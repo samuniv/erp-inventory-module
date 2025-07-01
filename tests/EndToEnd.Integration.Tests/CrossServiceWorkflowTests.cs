@@ -103,7 +103,7 @@ public class CrossServiceWorkflowTests
         var updatedInventoryResponse = await _fixture.InventoryServiceClient.GetAsync($"/api/inventory/{productId}");
         updatedInventoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var updatedInventory = await updatedInventoryResponse.Content.ReadFromJsonAsync<dynamic>();
-        
+
         var updatedQuantity = ((Newtonsoft.Json.Linq.JValue)updatedInventory!.quantity).Value;
         updatedQuantity.Should().Be(35, "Inventory should be reduced by order quantity");
 
@@ -132,12 +132,12 @@ public class CrossServiceWorkflowTests
         await Task.Delay(5000);
 
         // Check for low stock alert via Kafka
-        var messages = await KafkaTestUtilities.ConsumeMessagesAsync("inventory-alerts", 
+        var messages = await KafkaTestUtilities.ConsumeMessagesAsync("inventory-alerts",
             _fixture.KafkaBootstrapAddress, TimeSpan.FromSeconds(10), maxMessages: 5);
-        
+
         messages.Should().NotBeEmpty("Low stock alert should be published to Kafka");
-        
-        var lowStockAlert = messages.FirstOrDefault(m => 
+
+        var lowStockAlert = messages.FirstOrDefault(m =>
             m.Contains(productId.ToString()) && m.Contains("low stock"));
         lowStockAlert.Should().NotBeNull("Should receive low stock alert for the product");
     }
@@ -314,7 +314,7 @@ public class CrossServiceWorkflowTests
         await Task.Delay(5000);
 
         // Assert - Verify Kafka alert was published
-        var messages = await KafkaTestUtilities.ConsumeMessagesAsync("inventory-alerts", 
+        var messages = await KafkaTestUtilities.ConsumeMessagesAsync("inventory-alerts",
             _fixture.KafkaBootstrapAddress, TimeSpan.FromSeconds(15), maxMessages: 10);
 
         messages.Should().NotBeEmpty("Low stock alert should be published to Kafka");
@@ -341,7 +341,7 @@ public class CrossServiceWorkflowTests
 
         // Arrange
         var nonExistentProductId = Guid.NewGuid();
-        
+
         // Act & Assert - Test order creation with non-existent product
         var invalidOrderDto = new
         {
@@ -360,7 +360,7 @@ public class CrossServiceWorkflowTests
         };
 
         var invalidOrderResponse = await _fixture.OrderServiceClient.PostAsJsonAsync("/api/orders", invalidOrderDto);
-        
+
         // Should either return BadRequest or handle gracefully
         invalidOrderResponse.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.UnprocessableEntity);
 
@@ -400,7 +400,7 @@ public class CrossServiceWorkflowTests
         };
 
         var excessiveOrderResponse = await _fixture.OrderServiceClient.PostAsJsonAsync("/api/orders", excessiveOrderDto);
-        
+
         // Should handle insufficient stock gracefully
         excessiveOrderResponse.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.UnprocessableEntity);
 
@@ -476,9 +476,9 @@ public class CrossServiceWorkflowTests
         var finalInventoryResponse = await _fixture.InventoryServiceClient.GetAsync($"/api/inventory/{productId}");
         finalInventoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var finalInventory = await finalInventoryResponse.Content.ReadFromJsonAsync<dynamic>();
-        
+
         var expectedQuantity = 100 - (successfulOrders * quantityPerOrder);
-        ((int)finalInventory!.quantity).Should().Be(expectedQuantity, 
+        ((int)finalInventory!.quantity).Should().Be(expectedQuantity,
             $"Final quantity should reflect all successful orders. Expected: {expectedQuantity}");
     }
 }

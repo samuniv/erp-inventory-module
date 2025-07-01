@@ -10,7 +10,7 @@ namespace Shared.TestInfrastructure.Fixtures;
 public class IntegrationTestFixture : IAsyncLifetime
 {
     private readonly ILogger<IntegrationTestFixture> _logger;
-    
+
     public PostgreSqlFixture? PostgreSql { get; private set; }
     public OracleFixture? Oracle { get; private set; }
     public KafkaFixture? Kafka { get; private set; }
@@ -108,7 +108,7 @@ public class IntegrationTestFixture : IAsyncLifetime
     {
         if (PostgreSql == null)
             throw new InvalidOperationException("PostgreSQL fixture is not enabled");
-        
+
         return PostgreSql.ConnectionString;
     }
 
@@ -119,7 +119,7 @@ public class IntegrationTestFixture : IAsyncLifetime
     {
         if (Oracle == null)
             throw new InvalidOperationException("Oracle fixture is not enabled");
-        
+
         return Oracle.ConnectionString;
     }
 
@@ -130,7 +130,7 @@ public class IntegrationTestFixture : IAsyncLifetime
     {
         if (Kafka == null)
             throw new InvalidOperationException("Kafka fixture is not enabled");
-        
+
         return Kafka.BootstrapServers;
     }
 
@@ -141,7 +141,7 @@ public class IntegrationTestFixture : IAsyncLifetime
     {
         if (Kafka == null)
             throw new InvalidOperationException("Kafka fixture is not enabled");
-        
+
         return Kafka.CreateKafkaConsumer(groupId);
     }
 
@@ -152,7 +152,7 @@ public class IntegrationTestFixture : IAsyncLifetime
     {
         if (Kafka == null)
             throw new InvalidOperationException("Kafka fixture is not enabled");
-        
+
         return Kafka.CreateKafkaProducer();
     }
 
@@ -163,7 +163,7 @@ public class IntegrationTestFixture : IAsyncLifetime
     {
         if (Kafka == null)
             throw new InvalidOperationException("Kafka fixture is not enabled");
-        
+
         await Kafka.CreateTopicAsync(topicName, partitions, replicationFactor);
     }
 
@@ -171,14 +171,14 @@ public class IntegrationTestFixture : IAsyncLifetime
     /// Wait for a message on a topic
     /// </summary>
     public async Task<ConsumeResult<string, string>?> WaitForMessageAsync(
-        string topic, 
-        string consumerGroup, 
+        string topic,
+        string consumerGroup,
         TimeSpan timeout,
         Func<ConsumeResult<string, string>, bool>? predicate = null)
     {
         if (Kafka == null)
             throw new InvalidOperationException("Kafka fixture is not enabled");
-        
+
         return await Kafka.WaitForMessageAsync(topic, consumerGroup, timeout, predicate);
     }
 }

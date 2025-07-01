@@ -3,117 +3,117 @@ name: Performance Testing
 on:
   schedule:
     # Run performance tests daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       duration:
-        description: 'Test duration in minutes'
+        description: "Test duration in minutes"
         required: false
-        default: '10'
+        default: "10"
         type: string
       concurrency:
-        description: 'Number of concurrent users'
+        description: "Number of concurrent users"
         required: false
-        default: '10'
+        default: "10"
         type: string
 
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: "9.0.x"
 
 jobs:
   performance-test:
     name: Performance Testing
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build solution
-      run: dotnet build --no-restore --configuration Release
-      
-    - name: Start infrastructure
-      run: |
-        # Start all required containers for performance testing
-        docker-compose -f docker-compose.test.yml up -d
-        
-        # Wait for services to be ready
-        sleep 60
-        
-    - name: Run performance tests
-      run: |
-        # Install NBomber for load testing
-        dotnet add tests/Performance.Tests package NBomber
-        dotnet add tests/Performance.Tests package NBomber.Http
-        
-        # Run performance tests
-        dotnet test tests/Performance.Tests/ \
-          --configuration Release \
-          --logger trx \
-          --results-directory ./performance-results \
-          -p:Duration=${{ github.event.inputs.duration || '10' }} \
-          -p:Concurrency=${{ github.event.inputs.concurrency || '10' }}
-          
-    - name: Upload performance results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: performance-results
-        path: |
-          ./performance-results/**/*
-          
-    - name: Clean up
-      if: always()
-      run: |
-        docker-compose -f docker-compose.test.yml down
-        
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Start infrastructure
+        run: |
+          # Start all required containers for performance testing
+          docker-compose -f docker-compose.test.yml up -d
+
+          # Wait for services to be ready
+          sleep 60
+
+      - name: Run performance tests
+        run: |
+          # Install NBomber for load testing
+          dotnet add tests/Performance.Tests package NBomber
+          dotnet add tests/Performance.Tests package NBomber.Http
+
+          # Run performance tests
+          dotnet test tests/Performance.Tests/ \
+            --configuration Release \
+            --logger trx \
+            --results-directory ./performance-results \
+            -p:Duration=${{ github.event.inputs.duration || '10' }} \
+            -p:Concurrency=${{ github.event.inputs.concurrency || '10' }}
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            ./performance-results/**/*
+
+      - name: Clean up
+        if: always()
+        run: |
+          docker-compose -f docker-compose.test.yml down
+
   load-test:
     name: Load Testing
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Install k6
-      run: |
-        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-        sudo apt-get update
-        sudo apt-get install k6
-        
-    - name: Build and start services
-      run: |
-        dotnet build --configuration Release
-        
-        # Start services in background
-        docker-compose -f docker-compose.test.yml up -d
-        
-        # Wait for services to be ready
-        sleep 60
-        
-    - name: Run load tests
-      run: |
-        # Create load test scripts if they don't exist
-        mkdir -p tests/LoadTests
-        
-        # Run k6 load tests
-        k6 run --duration=10m --vus=50 tests/LoadTests/api-load-test.js || echo "Load test completed"
-        
-    - name: Clean up
-      if: always()
-      run: |
-        docker-compose -f docker-compose.test.yml down
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install k6
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Build and start services
+        run: |
+          dotnet build --configuration Release
+
+          # Start services in background
+          docker-compose -f docker-compose.test.yml up -d
+
+          # Wait for services to be ready
+          sleep 60
+
+      - name: Run load tests
+        run: |
+          # Create load test scripts if they don't exist
+          mkdir -p tests/LoadTests
+
+          # Run k6 load tests
+          k6 run --duration=10m --vus=50 tests/LoadTests/api-load-test.js || echo "Load test completed"
+
+      - name: Clean up
+        if: always()
+        run: |
+          docker-compose -f docker-compose.test.yml down

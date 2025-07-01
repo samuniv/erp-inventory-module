@@ -1,0 +1,54 @@
+# Dockerfile for running integration tests
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS test-runner
+
+# Install Docker CLI for Testcontainers
+RUN apt-get update && apt-get install -y \
+    docker.io \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy solution and project files
+COPY *.sln ./
+COPY src/**/*.csproj ./src/
+COPY tests/**/*.csproj ./tests/
+COPY Supplier.Service.IntegrationTests/*.csproj ./Supplier.Service.IntegrationTests/
+
+# Restore NuGet packages
+RUN find . -name "*.csproj" -exec dirname {} \; | sort -u | while read dir; do \
+    if [ -f "$dir"/*.csproj ]; then \
+        dotnet restore "$dir"/*.csproj; \
+    fi \
+    done
+
+# Copy source code
+COPY src/ ./src/
+COPY tests/ ./tests/
+COPY Supplier.Service.IntegrationTests/ ./Supplier.Service.IntegrationTests/
+
+# Copy integration test settings
+COPY tests/integration.runsettings ./
+
+# Build the solution
+RUN dotnet build ERPInventoryModule.sln --configuration Release --no-restore
+
+# Set environment variables for Testcontainers
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
+ENV TESTCONTAINERS_RYUK_DISABLED=true
+ENV TESTCONTAINERS_CHECKS_DISABLE=true
+
+# Create test results directory
+RUN mkdir -p /app/TestResults
+
+# Default command to run integration tests
+CMD ["dotnet", "test", "ERPInventoryModule.sln", \
+     "--configuration", "Release", \
+     "--no-build", \
+     "--filter", "FullyQualifiedName~IntegrationTests", \
+     "--logger", "trx", \
+     "--collect:XPlat Code Coverage", \
+     "--results-directory", "/app/TestResults", \
+     "--settings", "/app/integration.runsettings"]

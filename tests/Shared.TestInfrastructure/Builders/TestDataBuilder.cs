@@ -5,7 +5,7 @@ namespace Shared.TestInfrastructure.Builders;
 /// </summary>
 /// <typeparam name="T">The type being built</typeparam>
 /// <typeparam name="TBuilder">The builder type (for fluent chaining)</typeparam>
-public abstract class TestDataBuilder<T, TBuilder> 
+public abstract class TestDataBuilder<T, TBuilder>
     where TBuilder : TestDataBuilder<T, TBuilder>
     where T : class
 {

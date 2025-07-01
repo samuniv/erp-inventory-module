@@ -2,6 +2,7 @@ using Auth.Service.Data;
 using Auth.Service.Models;
 using Auth.Service.Services;
 using Auth.Service.DTOs;
+using Auth.Service.Observability;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,6 +11,7 @@ using System.Text;
 using Shared.Resilience;
 using Shared.Logging;
 using Shared.Observability;
+using Shared.HealthChecks;
 using Serilog;
 
 // Configure Serilog early in the application startup
@@ -32,6 +34,9 @@ builder.Services.AddObservability(
         .AddSource("Auth.Service"),
     configureMetrics: metrics => metrics
         .AddMeter("Auth.Service"));
+
+// Add custom metrics
+builder.Services.AddSingleton<AuthMetrics>();
 
 // Add database context
 builder.Services.AddDbContext<AuthDbContext>(options =>
@@ -101,9 +106,13 @@ builder.Services.AddScoped<IAuthService, Auth.Service.Services.AuthService>();
 // Add resilience policies
 builder.Services.AddResiliencePolicies();
 
-// Add health checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<AuthDbContext>();
+// Add comprehensive health checks
+builder.Services.AddComprehensiveHealthChecks(
+    serviceName: "Auth.Service",
+    configureHealthChecks: healthChecks =>
+    {
+        healthChecks.AddDbContextCheck<AuthDbContext>(tags: ["database", "ready", "live"]);
+    });
 
 var app = builder.Build();
 
@@ -250,7 +259,7 @@ app.MapPost("/api/auth/revoke", async (string refreshToken, IAuthService authSer
 .RequireAuthorization();
 
 // Health check endpoint
-app.MapHealthChecks("/health");
+app.MapComprehensiveHealthChecks();
 
 // Map metrics endpoint for Prometheus
 app.MapPrometheusScrapingEndpoint("/metrics");

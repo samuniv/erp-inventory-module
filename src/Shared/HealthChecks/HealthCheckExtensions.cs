@@ -181,7 +181,7 @@ public class MemoryHealthCheck : IHealthCheck
         {
             var memoryUsed = GC.GetTotalMemory(false);
             var workingSet = Environment.WorkingSet;
-            
+
             var data = new Dictionary<string, object>
             {
                 ["memoryUsed"] = memoryUsed,
@@ -196,19 +196,19 @@ public class MemoryHealthCheck : IHealthCheck
             if (memoryUsed > UnhealthyThresholdBytes)
             {
                 return Task.FromResult(HealthCheckResult.Unhealthy(
-                    $"Memory usage is too high: {memoryUsed / (1024.0 * 1024.0):F2} MB", 
+                    $"Memory usage is too high: {memoryUsed / (1024.0 * 1024.0):F2} MB",
                     data: data));
             }
 
             if (memoryUsed > DegradedThresholdBytes)
             {
                 return Task.FromResult(HealthCheckResult.Degraded(
-                    $"Memory usage is elevated: {memoryUsed / (1024.0 * 1024.0):F2} MB", 
+                    $"Memory usage is elevated: {memoryUsed / (1024.0 * 1024.0):F2} MB",
                     data: data));
             }
 
             return Task.FromResult(HealthCheckResult.Healthy(
-                $"Memory usage is normal: {memoryUsed / (1024.0 * 1024.0):F2} MB", 
+                $"Memory usage is normal: {memoryUsed / (1024.0 * 1024.0):F2} MB",
                 data: data));
         }
         catch (Exception ex)
@@ -229,7 +229,7 @@ public class DiskSpaceHealthCheck : IHealthCheck
         {
             var currentDirectory = Directory.GetCurrentDirectory();
             var drive = new DriveInfo(Path.GetPathRoot(currentDirectory) ?? "C:\\");
-            
+
             var freeSpaceBytes = drive.AvailableFreeSpace;
             var totalSpaceBytes = drive.TotalSize;
             var usedSpaceBytes = totalSpaceBytes - freeSpaceBytes;
@@ -250,19 +250,19 @@ public class DiskSpaceHealthCheck : IHealthCheck
             if (freeSpacePercentage < 5) // Less than 5% free space
             {
                 return Task.FromResult(HealthCheckResult.Unhealthy(
-                    $"Disk space critically low: {freeSpacePercentage:F2}% free", 
+                    $"Disk space critically low: {freeSpacePercentage:F2}% free",
                     data: data));
             }
 
             if (freeSpacePercentage < 15) // Less than 15% free space
             {
                 return Task.FromResult(HealthCheckResult.Degraded(
-                    $"Disk space is low: {freeSpacePercentage:F2}% free", 
+                    $"Disk space is low: {freeSpacePercentage:F2}% free",
                     data: data));
             }
 
             return Task.FromResult(HealthCheckResult.Healthy(
-                $"Disk space is adequate: {freeSpacePercentage:F2}% free", 
+                $"Disk space is adequate: {freeSpacePercentage:F2}% free",
                 data: data));
         }
         catch (Exception ex)
@@ -275,7 +275,7 @@ public class DiskSpaceHealthCheck : IHealthCheck
 /// <summary>
 /// Health check for database connectivity (can be used with any Entity Framework DbContext)
 /// </summary>
-public class DatabaseHealthCheck<TDbContext> : IHealthCheck 
+public class DatabaseHealthCheck<TDbContext> : IHealthCheck
     where TDbContext : class
 {
     private readonly TDbContext _dbContext;
@@ -293,19 +293,16 @@ public class DatabaseHealthCheck<TDbContext> : IHealthCheck
             if (_dbContext is Microsoft.EntityFrameworkCore.DbContext efContext)
             {
                 var canConnect = await efContext.Database.CanConnectAsync(cancellationToken);
-                
+
                 if (!canConnect)
                 {
                     return HealthCheckResult.Unhealthy("Cannot connect to database");
                 }
 
-                var connectionString = efContext.Database.GetConnectionString();
-                var databaseName = efContext.Database.GetDbConnection().Database;
-
                 var data = new Dictionary<string, object>
                 {
-                    ["database"] = databaseName,
-                    ["connectionState"] = efContext.Database.GetDbConnection().State.ToString()
+                    ["databaseProvider"] = efContext.Database.ProviderName ?? "Unknown",
+                    ["canConnect"] = true
                 };
 
                 return HealthCheckResult.Healthy("Database connection is healthy", data);
@@ -341,7 +338,7 @@ public class HttpServiceHealthCheck : IHealthCheck
         try
         {
             var response = await _httpClient.GetAsync(_healthEndpoint, cancellationToken);
-            
+
             var data = new Dictionary<string, object>
             {
                 ["service"] = _serviceName,

@@ -1,0 +1,239 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: "Integration test suite to run"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - database-only
+          - kafka-only
+          - oracle-only
+          - end-to-end
+      parallel_execution:
+        description: "Enable parallel test execution"
+        required: false
+        default: false
+        type: boolean
+  pull_request:
+    paths:
+      - "src/**/*.cs"
+      - "tests/**/*.cs"
+      - "**/Dockerfile"
+      - "docker-compose*.yml"
+  schedule:
+    # Run integration tests nightly at 2 AM UTC
+    - cron: "0 2 * * *"
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  SOLUTION_FILE: "ERPInventoryModule.sln"
+
+jobs:
+  integration-tests:
+    name: Integration Tests (${{ matrix.test-group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test-group:
+          - database-tests
+          - messaging-tests
+          - end-to-end-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.12.0
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-integration-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-integration-nuget-
+            ${{ runner.os }}-nuget-
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-integration-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-integration-
+
+      - name: Configure Docker daemon
+        run: |
+          # Increase Docker daemon performance for CI
+          echo '{"experimental": true, "features": {"buildkit": true}}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+          # Wait for Docker to be ready
+          sleep 10
+
+          # Verify Docker setup
+          docker version
+          docker info
+
+      - name: Pre-pull required images
+        run: |
+          docker pull oraclelinux:8
+          docker pull confluentinc/cp-kafka:latest
+          docker pull postgres:15-alpine
+          docker pull testcontainers/ryuk:0.5.1
+
+      - name: Restore NuGet packages
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build solution
+        run: |
+          dotnet build ${{ env.SOLUTION_FILE }} \
+            --configuration Release \
+            --no-restore \
+            --verbosity minimal
+
+      - name: Run database integration tests
+        if: matrix.test-group == 'database-tests' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'database-only'
+        run: |
+          dotnet test ${{ env.SOLUTION_FILE }} \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~IntegrationTests&Category!=EndToEnd&Category!=Messaging" \
+            --logger trx \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults/Database \
+            --settings ./tests/integration.runsettings \
+            -- RunConfiguration.MaxCpuCount=1
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
+          TESTCONTAINERS_RYUK_DISABLED: true
+          TESTCONTAINERS_CHECKS_DISABLE: true
+          TESTCONTAINERS_HOST_OVERRIDE: localhost
+
+      - name: Run messaging integration tests
+        if: matrix.test-group == 'messaging-tests' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'kafka-only'
+        run: |
+          dotnet test ${{ env.SOLUTION_FILE }} \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~IntegrationTests&Category=Messaging" \
+            --logger trx \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults/Messaging \
+            --settings ./tests/integration.runsettings \
+            -- RunConfiguration.MaxCpuCount=1
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
+          TESTCONTAINERS_RYUK_DISABLED: true
+          TESTCONTAINERS_CHECKS_DISABLE: true
+
+      - name: Run end-to-end integration tests
+        if: matrix.test-group == 'end-to-end-tests' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'end-to-end'
+        run: |
+          dotnet test ${{ env.SOLUTION_FILE }} \
+            --configuration Release \
+            --no-build \
+            --filter "FullyQualifiedName~IntegrationTests&Category=EndToEnd" \
+            --logger trx \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults/EndToEnd \
+            --settings ./tests/integration.runsettings \
+            -- RunConfiguration.MaxCpuCount=1
+        env:
+          DOCKER_HOST: unix:///var/run/docker.sock
+          TESTCONTAINERS_RYUK_DISABLED: true
+          TESTCONTAINERS_CHECKS_DISABLE: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results-${{ matrix.test-group }}
+          path: |
+            ./TestResults/**/*.trx
+            ./TestResults/**/*.xml
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./TestResults/**/coverage.cobertura.xml
+          flags: integration-tests,${{ matrix.test-group }}
+          name: integration-coverage-${{ matrix.test-group }}
+          fail_ci_if_error: false
+
+      - name: Generate test report
+        if: always()
+        run: |
+          if [ -f "./TestResults/**/*.trx" ]; then
+            echo "## Integration Test Results (${{ matrix.test-group }})" >> $GITHUB_STEP_SUMMARY
+            dotnet tool install -g dotnet-reportgenerator-globaltool 2>/dev/null || true
+            reportgenerator \
+              -reports:"./TestResults/**/coverage.cobertura.xml" \
+              -targetdir:"./TestResults/Reports" \
+              -reporttypes:"MarkdownSummaryGithub" \
+              -filefilters:"-**/Migrations/**" 2>/dev/null || echo "Coverage report generation skipped"
+            if [ -f "./TestResults/Reports/SummaryGithub.md" ]; then
+              cat ./TestResults/Reports/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Docker cleanup
+        if: always()
+        run: |
+          # Stop and remove all containers
+          docker ps -aq | xargs -r docker rm -f
+
+          # Remove all volumes
+          docker volume ls -q | xargs -r docker volume rm -f
+
+          # Remove unused networks
+          docker network ls --filter type=custom -q | xargs -r docker network rm
+
+          # Remove dangling images
+          docker image prune -f
+
+          # Final cleanup
+          docker system prune -f --volumes
+
+          echo "Docker cleanup completed"
+
+  test-summary:
+    name: Integration Test Summary
+    needs: integration-tests
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Check integration test results
+        run: |
+          echo "## Integration Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Group | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.integration-tests.result }}" == "success" ]]; then
+            echo "| All Integration Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Integration Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+            echo "Check the individual test group results above for details." >> $GITHUB_STEP_SUMMARY
+          fi

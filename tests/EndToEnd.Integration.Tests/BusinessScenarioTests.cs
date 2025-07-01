@@ -199,7 +199,7 @@ public class BusinessScenarioTests
         ((int)product2Inventory!.quantity).Should().Be(22, "Product B quantity should be reduced by 8");
 
         // Verify low stock alert for Product B
-        var messages = await KafkaTestUtilities.ConsumeMessagesAsync("inventory-alerts", 
+        var messages = await KafkaTestUtilities.ConsumeMessagesAsync("inventory-alerts",
             _fixture.KafkaBootstrapAddress, TimeSpan.FromSeconds(10), maxMessages: 5);
 
         var productBAlert = messages.FirstOrDefault(m => m.Contains(product2Id.ToString()));
@@ -373,7 +373,7 @@ public class BusinessScenarioTests
         ((int)initialInventory!.quantity).Should().Be(100);
 
         // Act - Perform multiple inventory operations
-        
+
         // 1. Create order that reduces inventory
         var order1Dto = new
         {
@@ -528,7 +528,7 @@ public class BusinessScenarioTests
 
         // Assert - Verify system handled load correctly
         var successfulOrders = responses.Count(r => r.StatusCode == HttpStatusCode.Created);
-        successfulOrders.Should().BeGreaterThan(numberOfOrders / 2, 
+        successfulOrders.Should().BeGreaterThan(numberOfOrders / 2,
             "At least half of the orders should be successful under load");
 
         // Verify inventory consistency
@@ -538,12 +538,12 @@ public class BusinessScenarioTests
         {
             var inventoryResponse = await _fixture.InventoryServiceClient.GetAsync($"/api/inventory/{productId}");
             inventoryResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-            
+
             var inventory = await inventoryResponse.Content.ReadFromJsonAsync<dynamic>();
             var currentQuantity = (int)inventory!.quantity;
-            
+
             // Each product might have been ordered multiple times
-            currentQuantity.Should().BeInRange(0, initialQuantityPerProduct, 
+            currentQuantity.Should().BeInRange(0, initialQuantityPerProduct,
                 "Inventory quantity should be within expected range after load testing");
         }
     }

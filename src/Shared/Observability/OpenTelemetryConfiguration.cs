@@ -71,8 +71,8 @@ public static class OpenTelemetryConfiguration
                 {
                     // Skip health check and metrics endpoints from tracing
                     var path = httpContext.Request.Path.Value?.ToLowerInvariant();
-                    return path != null && 
-                           !path.StartsWith("/health") && 
+                    return path != null &&
+                           !path.StartsWith("/health") &&
                            !path.StartsWith("/metrics");
                 };
                 options.EnrichWithHttpRequest = (activity, httpRequest) =>
@@ -133,7 +133,7 @@ public static class OpenTelemetryConfiguration
     private static Sampler GetSampler()
     {
         var samplingRatio = Environment.GetEnvironmentVariable("OTEL_TRACES_SAMPLER_ARG");
-        
+
         if (double.TryParse(samplingRatio, out var ratio) && ratio >= 0 && ratio <= 1)
         {
             return new TraceIdRatioBasedSampler(ratio);
@@ -155,8 +155,8 @@ public static class OpenTelemetryConfiguration
     /// </summary>
     private static string GetOtlpEndpoint()
     {
-        return Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? 
-               Environment.GetEnvironmentVariable("OTLP_ENDPOINT") ?? 
+        return Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ??
+               Environment.GetEnvironmentVariable("OTLP_ENDPOINT") ??
                "http://localhost:4317";
     }
 
@@ -166,7 +166,7 @@ public static class OpenTelemetryConfiguration
     private static OpenTelemetry.Exporter.OtlpExportProtocol GetOtlpProtocol()
     {
         var protocol = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_PROTOCOL");
-        
+
         return protocol?.ToLowerInvariant() switch
         {
             "grpc" => OpenTelemetry.Exporter.OtlpExportProtocol.Grpc,
@@ -205,12 +205,12 @@ public class ObservabilityMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         using var activity = ObservabilityActivitySource.Instance.StartActivity("http.request");
-        
+
         // Enrich the activity with additional context
         activity?.SetTag("http.request.id", context.TraceIdentifier);
         activity?.SetTag("http.request.scheme", context.Request.Scheme);
         activity?.SetTag("http.request.host", context.Request.Host.Value);
-        
+
         // Add correlation ID if available
         if (context.Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
         {
@@ -220,7 +220,7 @@ public class ObservabilityMiddleware
         try
         {
             await _next(context);
-            
+
             activity?.SetTag("http.response.status_code", context.Response.StatusCode);
             activity?.SetStatus(GetActivityStatus(context.Response.StatusCode));
         }

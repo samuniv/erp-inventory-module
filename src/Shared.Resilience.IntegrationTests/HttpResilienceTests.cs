@@ -22,8 +22,8 @@ public class HttpResilienceTests : IDisposable
     public HttpResilienceTests()
     {
         // Create a WireMock server to simulate external API failures
-        _mockServer = WireMockServer.Start(new WireMockServerSettings 
-        { 
+        _mockServer = WireMockServer.Start(new WireMockServerSettings
+        {
             Port = 0 // Use dynamic port
         });
 
@@ -31,7 +31,7 @@ public class HttpResilienceTests : IDisposable
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddConsole());
         services.AddResilientHttpClients();
-        
+
         _serviceProvider = services.BuildServiceProvider();
         _httpClient = _serviceProvider.GetRequiredService<IHttpClientFactory>()
                                    .CreateClient("ResilientClient");
@@ -43,7 +43,7 @@ public class HttpResilienceTests : IDisposable
         // Arrange
         var endpoint = "/test-retry";
         var expectedSuccessResponse = "Success after retry";
-        
+
         // Setup mock to fail twice then succeed
         _mockServer
             .Given(Request.Create().WithPath(endpoint).UsingGet())
@@ -78,7 +78,7 @@ public class HttpResilienceTests : IDisposable
 
         response.IsSuccessStatusCode.Should().BeTrue();
         content.Should().Be(expectedSuccessResponse);
-        
+
         // Verify all three calls were made (original + 2 retries)
         _mockServer.LogEntries.Count().Should().Be(3);
     }
@@ -88,7 +88,7 @@ public class HttpResilienceTests : IDisposable
     {
         // Arrange
         var endpoint = "/test-circuit-breaker";
-        
+
         // Setup mock to always fail
         _mockServer
             .Given(Request.Create().WithPath(endpoint).UsingGet())
@@ -100,7 +100,7 @@ public class HttpResilienceTests : IDisposable
 
         // Act - Make enough calls to trip the circuit breaker (5 failures)
         var exceptions = new List<Exception>();
-        
+
         for (int i = 0; i < 10; i++)
         {
             try
@@ -115,9 +115,9 @@ public class HttpResilienceTests : IDisposable
 
         // Assert
         exceptions.Should().HaveCountGreaterThan(5, "Circuit breaker should prevent further calls after threshold");
-        
+
         // Some exceptions should be circuit breaker exceptions (not just HTTP)
-        exceptions.Should().Contain(ex => ex.Message.Contains("circuit") || 
+        exceptions.Should().Contain(ex => ex.Message.Contains("circuit") ||
                                         ex.GetType().Name.Contains("BrokenCircuit"));
     }
 
@@ -126,7 +126,7 @@ public class HttpResilienceTests : IDisposable
     {
         // Arrange
         var endpoint = "/test-backoff";
-        
+
         // Setup mock to fail multiple times
         _mockServer
             .Given(Request.Create().WithPath(endpoint).UsingGet())
@@ -151,9 +151,9 @@ public class HttpResilienceTests : IDisposable
 
         // Assert - Should take some time due to exponential backoff
         // With exponential backoff: ~2s + ~4s + ~8s = at least 14 seconds total
-        totalTime.Should().BeGreaterThan(TimeSpan.FromSeconds(10), 
+        totalTime.Should().BeGreaterThan(TimeSpan.FromSeconds(10),
             "Exponential backoff should introduce delays between retries");
-        
+
         // Verify the expected number of retry attempts were made
         _mockServer.LogEntries.Count().Should().Be(4, "Should make 1 initial call + 3 retries");
     }
@@ -163,7 +163,7 @@ public class HttpResilienceTests : IDisposable
     {
         // Arrange
         var endpoint = "/test-no-retry";
-        
+
         // Setup mock to return 400 Bad Request (client error - should not retry)
         _mockServer
             .Given(Request.Create().WithPath(endpoint).UsingGet())
@@ -178,7 +178,7 @@ public class HttpResilienceTests : IDisposable
 
         // Assert
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
-        
+
         // Should only make one call (no retries for client errors)
         _mockServer.LogEntries.Count().Should().Be(1, "Client errors should not be retried");
     }
@@ -188,7 +188,7 @@ public class HttpResilienceTests : IDisposable
     {
         // Arrange
         var endpoint = "/test-recovery";
-        
+
         // Setup mock to fail initially, then succeed
         _mockServer
             .Given(Request.Create().WithPath(endpoint).UsingGet())
@@ -227,12 +227,12 @@ public class HttpResilienceTests : IDisposable
 
         // Act - Try again after circuit breaker timeout
         await Task.Delay(TimeSpan.FromSeconds(30)); // Wait for circuit breaker timeout
-        
+
         var recoveryResponse = await _httpClient.GetAsync(requestUri);
 
         // Assert
         recoveryResponse.IsSuccessStatusCode.Should().BeTrue("Circuit breaker should allow requests after timeout");
-        
+
         var content = await recoveryResponse.Content.ReadAsStringAsync();
         content.Should().Be("Recovery Success");
     }

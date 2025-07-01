@@ -34,7 +34,7 @@ public class DatabaseResilienceTests : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddConsole());
         services.AddResiliencePolicies();
-        
+
         _serviceProvider = services.BuildServiceProvider();
         _databasePolicy = _serviceProvider.GetRequiredKeyedService<IAsyncPolicy>("DatabasePolicy");
     }
@@ -50,13 +50,13 @@ public class DatabaseResilienceTests : IAsyncLifetime
         var databaseOperation = async () =>
         {
             retryCount++;
-            
+
             // Simulate transient failure for first two attempts
             if (retryCount <= 2)
             {
                 throw new Npgsql.NpgsqlException("Connection timeout");
             }
-            
+
             // Succeed on third attempt
             using var connection = new Npgsql.NpgsqlConnection(connectionString);
             await connection.OpenAsync();
@@ -81,7 +81,7 @@ public class DatabaseResilienceTests : IAsyncLifetime
         var databaseOperation = async () =>
         {
             retryCount++;
-            
+
             // Simulate non-transient failure (authentication error)
             throw new Npgsql.NpgsqlException("Authentication failed");
         };
@@ -105,21 +105,21 @@ public class DatabaseResilienceTests : IAsyncLifetime
         var databaseOperation = async () =>
         {
             deadlockCount++;
-            
+
             if (deadlockCount == 1)
             {
                 // Simulate deadlock on first attempt
                 throw new Npgsql.NpgsqlException("deadlock detected");
             }
-            
+
             // Succeed on retry
             using var connection = new Npgsql.NpgsqlConnection(connectionString);
             await connection.OpenAsync();
-            
+
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT 1";
             var result = await command.ExecuteScalarAsync();
-            
+
             return result?.ToString() ?? "null";
         };
 
@@ -155,27 +155,27 @@ public class DatabaseResilienceTests : IAsyncLifetime
         var transactionOperation = async () =>
         {
             operationCount++;
-            
+
             using var connection = new Npgsql.NpgsqlConnection(connectionString);
             await connection.OpenAsync();
-            
+
             using var transaction = await connection.BeginTransactionAsync();
-            
+
             try
             {
                 using var command = connection.CreateCommand();
                 command.Transaction = transaction;
                 command.CommandText = "INSERT INTO test_resilience_table (name) VALUES (@name)";
                 command.Parameters.AddWithValue("name", $"Test-{operationCount}");
-                
+
                 await command.ExecuteNonQueryAsync();
-                
+
                 // Simulate failure on first attempt that requires rollback
                 if (operationCount == 1)
                 {
                     throw new InvalidOperationException("Simulated transaction failure");
                 }
-                
+
                 await transaction.CommitAsync();
                 return "Transaction completed";
             }
@@ -236,12 +236,12 @@ public class DatabaseResilienceTests : IAsyncLifetime
         {
             retryTimestamps.Add(DateTime.UtcNow);
             retryCount++;
-            
+
             if (retryCount <= 2)
             {
                 throw new Npgsql.NpgsqlException("Timeout for retry timing test");
             }
-            
+
             return "Timing test completed";
         };
 
@@ -255,14 +255,14 @@ public class DatabaseResilienceTests : IAsyncLifetime
         if (retryTimestamps.Count >= 2)
         {
             var firstRetryDelay = retryTimestamps[1] - retryTimestamps[0];
-            firstRetryDelay.Should().BeGreaterThan(TimeSpan.FromMilliseconds(500), 
+            firstRetryDelay.Should().BeGreaterThan(TimeSpan.FromMilliseconds(500),
                 "First retry should have exponential backoff delay");
         }
 
         if (retryTimestamps.Count >= 3)
         {
             var secondRetryDelay = retryTimestamps[2] - retryTimestamps[1];
-            secondRetryDelay.Should().BeGreaterThan(TimeSpan.FromSeconds(1), 
+            secondRetryDelay.Should().BeGreaterThan(TimeSpan.FromSeconds(1),
                 "Second retry should have longer exponential backoff delay");
         }
     }

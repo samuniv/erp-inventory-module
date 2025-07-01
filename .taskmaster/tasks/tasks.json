@@ -721,7 +721,7 @@
           6,
           7
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -739,7 +739,7 @@
               1
             ],
             "details": "Integrate OpenTelemetry SDKs into each service. Add instrumentation for ASP.NET Core, HttpClient, and other relevant libraries. Configure the tracer provider and meter provider to export data via OTLP to a backend like Jaeger (for traces) and Prometheus (for metrics).",
-            "status": "in-progress"
+            "status": "done"
           },
           {
             "id": 3,
@@ -747,7 +747,7 @@
             "description": "Create health check endpoints for each microservice that report on the service's status and the health of its critical dependencies, such as databases and message brokers (Kafka).",
             "dependencies": [],
             "details": "Use the built-in ASP.NET Core Health Checks feature. Add checks for each service's dependencies, including database connectivity (e.g., using HealthChecks.NpgSql) and Kafka broker availability (e.g., using HealthChecks.Kafka). Expose the results via a standardized endpoint like '/health'.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -758,7 +758,7 @@
               3
             ],
             "details": "Configure a Prometheus instance to scrape the '/metrics' endpoint exposed by OpenTelemetry. Use a tool like curl or Postman to poll the '/health' endpoint of each service and inspect the response. Generate a test transaction that spans multiple services and verify the complete, correlated trace appears in Jaeger. Check the centralized logging system to confirm structured logs are being ingested correctly.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -773,23 +773,23 @@
           13,
           14
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Create Frontend Angular CI Workflow",
             "description": "Set up a CI workflow for the Angular frontend application. This workflow should include steps for installing dependencies, linting the code, running unit tests, and creating a production build.",
             "dependencies": [],
-            "details": "The workflow will be defined in a YAML file (e.g., in the .github/workflows directory). It will need to use a Node.js environment, run `npm install`, execute `ng lint`, run `ng test --watch=false --browsers=ChromeHeadless`, and finally perform a production build with `ng build --configuration=production`.",
-            "status": "pending"
+            "details": "The workflow will be defined in a YAML file (e.g., in the .github/workflows directory). It will need to use a Node.js environment, run `npm install`, execute `ng lint`, run `ng test --watch=false --browsers=ChromeHeadless`, and finally perform a production build with `ng build --configuration=production`.\n<info added on 2025-06-30T16:42:57.712Z>\nCreated comprehensive GitHub Actions workflow (.github/workflows/angular.yml) with:\n- Multi-Node.js version testing (18.x, 20.x) \n- Lint, test, and build jobs with proper caching\n- Security audit job with npm audit and better-npm-audit\n- E2E testing with Playwright (PR-only)\n- Docker image building and pushing to GHCR (main branch only)\n- Code coverage upload to Codecov\n- Build artifact uploads for main branch\n\nUpdated Angular package.json with CI-specific scripts:\n- test:ci for headless testing with coverage\n- build:prod for production builds\n- lint and lint:fix for code quality\n- e2e for end-to-end testing\n\nAdded ESLint configuration (.eslintrc.json) with:\n- Angular ESLint rules for components and templates\n- TypeScript strict rules for code quality\n- Custom rules for unused variables and explicit types\n\nCreated Playwright E2E testing setup:\n- playwright.config.ts with comprehensive browser testing\n- Basic E2E tests in e2e/app.spec.ts\n- Multi-browser and mobile viewport testing\n- Automatic dev server startup for testing\n\nCreated production Docker setup:\n- Multi-stage Dockerfile with Node.js builder and Nginx runtime\n- Custom nginx.conf with Angular routing support, caching, security headers\n- Health check endpoint and API proxy configuration\n- Optimized for production deployment\n</info added on 2025-06-30T16:42:57.712Z>",
+            "status": "done"
           },
           {
             "id": 2,
             "title": "Create Backend .NET CI Workflow (Build & Unit Test)",
             "description": "Establish a CI workflow for the .NET backend application. This initial workflow will focus on building the solution and running the fast-executing unit tests.",
             "dependencies": [],
-            "details": "Define a YAML workflow file that uses the .NET SDK. It should include steps to restore NuGet packages (`dotnet restore`), build the solution (`dotnet build --configuration Release`), and run all unit test projects, excluding integration tests (`dotnet test --filter 'Category!=Integration'`).",
-            "status": "pending"
+            "details": "Define a YAML workflow file that uses the .NET SDK. It should include steps to restore NuGet packages (`dotnet restore`), build the solution (`dotnet build --configuration Release`), and run all unit test projects, excluding integration tests (`dotnet test --filter 'Category!=Integration'`).\n<info added on 2025-07-01T04:08:39.431Z>\nCompleted the .NET Backend CI workflow implementation. Key enhancements include:\n- A comprehensive GitHub Actions workflow (.github/workflows/dotnet.yml) with multi-configuration testing (Debug & Release), improved unit test filtering (\"FullyQualifiedName!~IntegrationTests\"), NuGet package caching, code coverage collection with XPlat and Codecov, and test results artifact upload.\n- A dedicated code quality analysis job integrating SonarCloud static analysis, security vulnerability scanning, and outdated package detection, with exclusions for auto-generated code.\n- Enhanced Docker image builds using a multi-service matrix strategy for parallel builds, GHCR integration, BuildKit caching, and proper branch/SHA tagging.\n- All service Dockerfiles were updated to be production-ready with multi-stage builds, non-root user execution, and health checks. A new Dockerfile for Supplier.Service was created.\n- Package validation and publishing steps were added, including separate publish steps for each microservice, build artifact uploads for the main branch, and correct service port exposure (Auth:5006, Inventory:5007, Order:5008, Supplier:5009, Gateway:5010).\n- The workflow was corrected to use the proper solution name, \"ERPInventoryModule.sln\".\n</info added on 2025-07-01T04:08:39.431Z>",
+            "status": "done"
           },
           {
             "id": 3,
@@ -798,8 +798,8 @@
             "dependencies": [
               2
             ],
-            "details": "Update the .NET CI workflow to ensure Docker is available and running on the CI agent. Add a dedicated job or step to execute the integration tests (`dotnet test --filter 'Category=Integration'`). This is a high-complexity task due to the need to correctly configure the runner environment to support Docker for Testcontainers.",
-            "status": "pending"
+            "details": "Update the .NET CI workflow to ensure Docker is available and running on the CI agent. Add a dedicated job or step to execute the integration tests (`dotnet test --filter 'Category=Integration'`). This is a high-complexity task due to the need to correctly configure the runner environment to support Docker for Testcontainers.\n<info added on 2025-07-01T04:13:59.793Z>\nCompleted the Testcontainers integration. Enhanced the main .NET CI workflow (.github/workflows/dotnet.yml) with a dedicated job for integration tests, including Docker-in-Docker support. Created a new, separate workflow (.github/workflows/integration-tests.yml) with a matrix strategy for parallel execution, manual dispatch triggers, and scheduled nightly runs. Added several new configuration and infrastructure files to support the tests: `tests/integration.runsettings` for test parameters, `docker-compose.integration.yml` for services like PostgreSQL and Kafka, and a specialized `Dockerfile.test`. Also created comprehensive runner scripts for local execution on both Linux/macOS and Windows, along with detailed documentation in `tests/README.md`. The enhanced backend workflow now fully supports Testcontainers integration tests with robust CI/CD automation and local development tooling.\n</info added on 2025-07-01T04:13:59.793Z>",
+            "status": "done"
           },
           {
             "id": 4,
@@ -810,14 +810,14 @@
               3
             ],
             "details": "Set up the workflows to trigger on pull requests targeting the `main` and `develop` branches. Configure branch protection rules in the repository settings to require the successful completion of both the Angular and the full .NET (including integration tests) workflows before a pull request can be merged.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       }
     ],
     "metadata": {
       "created": "2025-06-29T13:50:42.808Z",
-      "updated": "2025-06-30T16:04:05.852Z",
+      "updated": "2025-07-01T04:20:16.529Z",
       "description": "Tasks for master context"
     }
   }

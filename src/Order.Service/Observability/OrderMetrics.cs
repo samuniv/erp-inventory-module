@@ -19,16 +19,16 @@ public class OrderMetrics : IDisposable
     public OrderMetrics()
     {
         _meter = new Meter("Order.Service", "1.0.0");
-        
+
         // Counters for order lifecycle events
         _ordersCreatedCounter = _meter.CreateCounter<long>(
             "orders_created_total",
             description: "Total number of orders created");
-            
+
         _ordersCompletedCounter = _meter.CreateCounter<long>(
-            "orders_completed_total", 
+            "orders_completed_total",
             description: "Total number of orders completed");
-            
+
         _ordersCancelledCounter = _meter.CreateCounter<long>(
             "orders_cancelled_total",
             description: "Total number of orders cancelled");
@@ -38,7 +38,7 @@ public class OrderMetrics : IDisposable
             "order_processing_duration_seconds",
             unit: "s",
             description: "Duration of order processing in seconds");
-            
+
         _orderValueHistogram = _meter.CreateHistogram<double>(
             "order_value_distribution",
             unit: "USD",
@@ -62,7 +62,7 @@ public class OrderMetrics : IDisposable
             {"customer_id", customerId.ToString()},
             {"order_value_range", GetValueRange(orderValue)}
         };
-        
+
         _ordersCreatedCounter.Add(1, tags);
         _orderValueHistogram.Record((double)orderValue, tags);
         _activeOrdersGauge.Add(1);
@@ -82,7 +82,7 @@ public class OrderMetrics : IDisposable
             {"order_value_range", GetValueRange(orderValue)},
             {"processing_time_range", GetDurationRange(processingDuration)}
         };
-        
+
         _ordersCompletedCounter.Add(1, tags);
         _orderProcessingDuration.Record(processingDuration.TotalSeconds, tags);
         _activeOrdersGauge.Add(-1);
@@ -100,7 +100,7 @@ public class OrderMetrics : IDisposable
             {"customer_id", customerId.ToString()},
             {"cancellation_reason", reason}
         };
-        
+
         _ordersCancelledCounter.Add(1, tags);
         _activeOrdersGauge.Add(-1);
     }
@@ -115,13 +115,13 @@ public class OrderMetrics : IDisposable
         var alertCounter = _meter.CreateCounter<long>(
             "inventory_alerts_handled_total",
             description: "Total number of inventory alerts handled");
-            
+
         var tags = new TagList
         {
             {"alert_type", alertType},
             {"product_id", productId.ToString()}
         };
-        
+
         alertCounter.Add(1, tags);
     }
 
@@ -136,18 +136,18 @@ public class OrderMetrics : IDisposable
         var ruleCounter = _meter.CreateCounter<long>(
             "business_rules_evaluated_total",
             description: "Total number of business rule evaluations");
-            
+
         var ruleHistogram = _meter.CreateHistogram<double>(
             "business_rule_execution_duration_seconds",
             unit: "s",
             description: "Duration of business rule execution");
-            
+
         var tags = new TagList
         {
             {"rule_name", ruleName},
             {"result", result.ToString().ToLower()}
         };
-        
+
         ruleCounter.Add(1, tags);
         ruleHistogram.Record(executionTime.TotalSeconds, tags);
     }

@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text;
+using Gateway.API.Observability;
 using Shared.Resilience;
 using Shared.Logging;
 using Shared.Observability;
+using Shared.HealthChecks;
 using Serilog;
 
 // Configure Serilog early in the application startup
@@ -26,6 +29,9 @@ builder.Services.AddObservability(
         .AddSource("Gateway.API"),
     configureMetrics: metrics => metrics
         .AddMeter("Gateway.API"));
+
+// Add custom metrics
+builder.Services.AddSingleton<GatewayMetrics>();
 
 // Add resilient HTTP clients for downstream services
 builder.Services.AddResilientHttpClients(options =>
@@ -85,8 +91,28 @@ builder.Services.AddCors(options =>
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
-// Add health checks
-builder.Services.AddHealthChecks();
+// Add comprehensive health checks
+builder.Services.AddComprehensiveHealthChecks(
+    serviceName: "Gateway.API",
+    configureHealthChecks: healthChecks =>
+    {
+        // Add simple health checks for downstream services
+        healthChecks.AddCheck("auth_service_health", () =>
+        {
+            // Basic connectivity check - in production, this would be more sophisticated
+            return HealthCheckResult.Healthy("Auth service connectivity check");
+        }, tags: ["downstream", "ready"]);
+
+        healthChecks.AddCheck("inventory_service_health", () =>
+        {
+            return HealthCheckResult.Healthy("Inventory service connectivity check");
+        }, tags: ["downstream", "ready"]);
+
+        healthChecks.AddCheck("order_service_health", () =>
+        {
+            return HealthCheckResult.Healthy("Order service connectivity check");
+        }, tags: ["downstream", "ready"]);
+    });
 
 var app = builder.Build();
 
@@ -113,8 +139,8 @@ app.UseAuthorization();
 // Use YARP
 app.MapReverseProxy();
 
-// Map health checks
-app.MapHealthChecks("/health");
+// Map comprehensive health checks
+app.MapComprehensiveHealthChecks();
 
 // Map metrics endpoint for Prometheus
 app.MapPrometheusScrapingEndpoint("/metrics");

@@ -7,6 +7,7 @@ using Order.Service.Events;
 using Order.Service.Observability;
 using Shared.Logging;
 using Shared.Observability;
+using Shared.HealthChecks;
 using System.Text;
 using Serilog;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -83,9 +84,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add health checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<OrderDbContext>();
+// Add comprehensive health checks
+builder.Services.AddComprehensiveHealthChecks(
+    serviceName: "Order.Service",
+    configureHealthChecks: healthChecks =>
+    {
+        healthChecks.AddDbContextCheck<OrderDbContext>(tags: ["database", "ready", "live"]);
+
+        // Add Kafka health check if available
+        // healthChecks.AddKafka(options => { /* configure */ }, tags: ["kafka", "ready"]);
+    });
 
 var app = builder.Build();
 
@@ -108,8 +116,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Map health checks
-app.MapHealthChecks("/health");
+// Map comprehensive health checks
+app.MapComprehensiveHealthChecks();
 
 // Map metrics endpoint for Prometheus
 app.MapPrometheusScrapingEndpoint("/metrics");

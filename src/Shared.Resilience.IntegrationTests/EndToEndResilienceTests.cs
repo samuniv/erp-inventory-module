@@ -28,21 +28,21 @@ public class EndToEndResilienceTests : IDisposable
     public EndToEndResilienceTests()
     {
         // Setup mock server
-        _mockServer = WireMockServer.Start(new WireMockServerSettings 
-        { 
-            Port = 0 
+        _mockServer = WireMockServer.Start(new WireMockServerSettings
+        {
+            Port = 0
         });
 
         // Setup DI container with all resilience policies
         var services = new ServiceCollection();
-        services.AddLogging(builder => 
+        services.AddLogging(builder =>
         {
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Information);
         });
         services.AddResilientHttpClients();
         services.AddResiliencePolicies();
-        
+
         _serviceProvider = services.BuildServiceProvider();
         _httpClient = _serviceProvider.GetRequiredService<IHttpClientFactory>()
                                    .CreateClient("ResilientClient");
@@ -82,37 +82,37 @@ public class EndToEndResilienceTests : IDisposable
             var dbResult = await _databasePolicy.ExecuteAsync(async () =>
             {
                 operationSteps.Add("Database operation attempted");
-                
+
                 // Simulate database transient failure on first attempt
                 if (!operationSteps.Contains("Database retry"))
                 {
                     operationSteps.Add("Database retry");
                     throw new InvalidOperationException("Database connection timeout");
                 }
-                
+
                 operationSteps.Add("Database operation successful");
                 return "Database updated";
             });
 
             // Step 2: HTTP API call (will fail once due to mock setup)
-            var apiResult = await _httpClient.PostAsync($"{_mockServer.Url}{endpoint}", 
+            var apiResult = await _httpClient.PostAsync($"{_mockServer.Url}{endpoint}",
                 new StringContent("test data"));
-            
+
             operationSteps.Add($"API call result: {apiResult.StatusCode}");
             var apiContent = await apiResult.Content.ReadAsStringAsync();
-            
+
             // Step 3: Event publishing (simulate Kafka failure and retry)
             var eventResult = await _kafkaPolicy.ExecuteAsync(async () =>
             {
                 operationSteps.Add("Event publishing attempted");
-                
+
                 // Simulate Kafka transient failure on first attempt
                 if (!operationSteps.Contains("Event retry"))
                 {
                     operationSteps.Add("Event retry");
                     throw new InvalidOperationException("Kafka broker temporarily unavailable");
                 }
-                
+
                 operationSteps.Add("Event published successfully");
                 return "Event published";
             });
@@ -133,13 +133,13 @@ public class EndToEndResilienceTests : IDisposable
         result.Database.Should().Be("Database updated");
         result.Api.Should().Be(successResponse);
         result.Event.Should().Be("Event published");
-        
+
         // Verify all resilience patterns worked
         operationSteps.Should().Contain("Database retry", "Database operation should have retried");
         operationSteps.Should().Contain("Database operation successful", "Database should eventually succeed");
         operationSteps.Should().Contain("Event retry", "Event publishing should have retried");
         operationSteps.Should().Contain("Event published successfully", "Event should eventually be published");
-        
+
         // Verify HTTP retry happened (mock server should have 2 calls)
         _mockServer.LogEntries.Count().Should().Be(2, "HTTP client should have retried once");
     }
@@ -163,14 +163,14 @@ public class EndToEndResilienceTests : IDisposable
         var cascadingFailureOperation = async () =>
         {
             operationCount++;
-            
+
             try
             {
                 // This should eventually be stopped by circuit breaker
                 var response = await _httpClient.GetAsync($"{_mockServer.Url}{endpoint}");
                 return response.IsSuccessStatusCode ? "Success" : "Failed";
             }
-            catch (Exception ex) when (ex.Message.Contains("circuit") || 
+            catch (Exception ex) when (ex.Message.Contains("circuit") ||
                                      ex.GetType().Name.Contains("BrokenCircuit"))
             {
                 circuitBreakerTripped = true;
@@ -195,10 +195,10 @@ public class EndToEndResilienceTests : IDisposable
         // Assert
         circuitBreakerTripped.Should().BeTrue("Circuit breaker should have tripped to prevent cascading failures");
         exceptions.Should().HaveCountGreaterThan(5, "Should have multiple failures before circuit breaker trips");
-        
+
         // Later calls should be blocked by circuit breaker (faster failures)
         var fastFailures = exceptions.Skip(8).Take(5);
-        fastFailures.Should().AllSatisfy(ex => 
+        fastFailures.Should().AllSatisfy(ex =>
             ex.Message.Should().ContainAny("circuit", "breaker", "open"),
             "Later failures should be circuit breaker exceptions");
     }
@@ -270,9 +270,9 @@ public class EndToEndResilienceTests : IDisposable
         completedResults.Should().Contain("Service1 Success", "Service1 should succeed after retry");
         completedResults.Should().Contain("Service2 Success", "Service2 should succeed immediately");
         completedResults.Should().Contain("Service3 Success", "Service3 should succeed after multiple retries");
-        
+
         // Verify independent operation - no cross-contamination of failures
-        results.Should().AllSatisfy(result => 
+        results.Should().AllSatisfy(result =>
             result.Should().ContainAny("Success", "Exception"),
             "All services should either succeed or have their own independent failures");
     }
@@ -325,9 +325,9 @@ public class EndToEndResilienceTests : IDisposable
 
         // Assert
         result.Should().Be("Fallback: Fallback service response");
-        
+
         // Verify both services were called
-        _mockServer.LogEntries.Should().HaveCount(6, 
+        _mockServer.LogEntries.Should().HaveCount(6,
             "Should have multiple calls to primary (retries) plus fallback call");
     }
 
@@ -374,15 +374,15 @@ public class EndToEndResilienceTests : IDisposable
         var results = await Task.WhenAll(tasks);
 
         // Assert
-        successCount.Should().BeGreaterThan(requestCount / 2, 
+        successCount.Should().BeGreaterThan(requestCount / 2,
             "Most requests should succeed");
-        
+
         var totalRequests = successCount + failureCount;
         totalRequests.Should().Be(requestCount, "All requests should be accounted for");
 
         // Verify resilience patterns handled the load effectively
         results.Count(r => r == "Success").Should().Be(successCount);
-        
+
         // Should have some requests to mock server
         _mockServer.LogEntries.Count().Should().BeGreaterThan(0,
             "Should have made requests to the mock server");

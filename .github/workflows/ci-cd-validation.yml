@@ -1,0 +1,331 @@
+name: CI/CD Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      validation_type:
+        description: "Type of validation to perform"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - workflows-only
+          - branch-protection-only
+          - performance-check
+  schedule:
+    # Run validation weekly on Sundays at 3 AM UTC
+    - cron: "0 3 * * 0"
+
+jobs:
+  validate-workflows:
+    name: Validate Workflow Configuration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'all' || github.event.inputs.validation_type == 'workflows-only' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate workflow syntax
+        run: |
+          echo "🔍 Validating GitHub Actions workflow syntax..."
+
+          # Check if all workflow files are valid YAML
+          for workflow in .github/workflows/*.yml .github/workflows/*.yaml; do
+            if [ -f "$workflow" ]; then
+              echo "Checking $workflow..."
+              python -c "import yaml; yaml.safe_load(open('$workflow'))" || {
+                echo "❌ Invalid YAML syntax in $workflow"
+                exit 1
+              }
+              echo "✅ $workflow is valid"
+            fi
+          done
+
+      - name: Check required workflow files
+        run: |
+          echo "📋 Checking for required workflow files..."
+
+          required_workflows=(
+            ".github/workflows/angular.yml"
+            ".github/workflows/dotnet.yml" 
+            ".github/workflows/integration-tests.yml"
+          )
+
+          missing_workflows=()
+
+          for workflow in "${required_workflows[@]}"; do
+            if [ ! -f "$workflow" ]; then
+              missing_workflows+=("$workflow")
+            else
+              echo "✅ Found $workflow"
+            fi
+          done
+
+          if [ ${#missing_workflows[@]} -gt 0 ]; then
+            echo "❌ Missing required workflow files:"
+            printf '%s\n' "${missing_workflows[@]}"
+            exit 1
+          fi
+
+          echo "✅ All required workflow files are present"
+
+      - name: Validate workflow triggers
+        run: |
+          echo "🎯 Validating workflow triggers..."
+
+          # Check Angular workflow triggers
+          if ! grep -q "branches: \[main, develop\]" .github/workflows/angular.yml; then
+            echo "❌ Angular workflow missing proper branch triggers"
+            exit 1
+          fi
+
+          # Check .NET workflow triggers  
+          if ! grep -q "branches: \[main, develop\]" .github/workflows/dotnet.yml; then
+            echo "❌ .NET workflow missing proper branch triggers"
+            exit 1
+          fi
+
+          # Check integration tests triggers
+          if ! grep -q "workflow_dispatch:" .github/workflows/integration-tests.yml; then
+            echo "❌ Integration tests workflow missing manual dispatch trigger"
+            exit 1
+          fi
+
+          echo "✅ All workflow triggers are properly configured"
+
+      - name: Check path-based filtering
+        run: |
+          echo "📁 Validating path-based filtering..."
+
+          # Check if Angular workflow has proper path filtering
+          if ! grep -A 5 "paths:" .github/workflows/angular.yml | grep -q "erp-inventory-angular"; then
+            echo "❌ Angular workflow missing proper path filtering"
+            exit 1
+          fi
+
+          # Check if .NET workflow has proper path filtering
+          if ! grep -A 10 "paths:" .github/workflows/dotnet.yml | grep -q "src/"; then
+            echo "❌ .NET workflow missing proper path filtering"
+            exit 1
+          fi
+
+          echo "✅ Path-based filtering is properly configured"
+
+  validate-branch-protection:
+    name: Validate Branch Protection Rules
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'all' || github.event.inputs.validation_type == 'branch-protection-only' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check branch protection documentation
+        run: |
+          echo "📚 Checking branch protection documentation..."
+
+          if [ ! -f ".github/BRANCH_PROTECTION.md" ]; then
+            echo "❌ Branch protection documentation missing"
+            exit 1
+          fi
+
+          echo "✅ Branch protection documentation exists"
+
+      - name: Validate branch protection scripts
+        run: |
+          echo "🔧 Validating branch protection setup scripts..."
+
+          scripts=(
+            "scripts/setup-branch-protection.sh"
+            "scripts/setup-branch-protection.ps1"
+          )
+
+          for script in "${scripts[@]}"; do
+            if [ ! -f "$script" ]; then
+              echo "❌ Missing script: $script"
+              exit 1
+            fi
+            echo "✅ Found $script"
+          done
+
+      - name: Check GitHub CLI requirements
+        run: |
+          echo "🔍 Documenting GitHub CLI setup requirements..."
+
+          echo "To set up branch protection rules, ensure:"
+          echo "1. GitHub CLI is installed (https://cli.github.com/)"
+          echo "2. User is authenticated: gh auth login"
+          echo "3. User has admin permissions on the repository"
+          echo "4. Run: ./scripts/setup-branch-protection.sh"
+
+  performance-check:
+    name: CI/CD Performance Analysis
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'all' || github.event.inputs.validation_type == 'performance-check' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Analyze workflow efficiency
+        run: |
+          echo "⚡ Analyzing CI/CD performance characteristics..."
+
+          echo "📊 Workflow Complexity Analysis:"
+          echo "================================"
+
+          # Count jobs per workflow
+          for workflow in .github/workflows/*.yml; do
+            if [ -f "$workflow" ]; then
+              job_count=$(grep -c "^  [a-zA-Z0-9_-]*:$" "$workflow" | head -1)
+              echo "$(basename "$workflow"): $job_count jobs"
+            fi
+          done
+
+          echo ""
+          echo "🔄 Parallelization Opportunities:"
+          echo "================================="
+
+          # Check for matrix strategies
+          if grep -q "strategy:" .github/workflows/*.yml; then
+            echo "✅ Matrix strategies found - good for parallelization"
+          else
+            echo "⚠️  No matrix strategies found - consider adding for performance"
+          fi
+
+          # Check for caching
+          if grep -q "actions/cache@" .github/workflows/*.yml; then
+            echo "✅ Caching configured - good for performance"
+          else
+            echo "⚠️  No caching found - consider adding for faster builds"
+          fi
+
+      - name: Check resource optimization
+        run: |
+          echo "🎯 Resource Optimization Analysis:"
+          echo "=================================="
+
+          # Check for resource-intensive operations
+          if grep -q "integration-tests" .github/workflows/*.yml; then
+            echo "⚠️  Integration tests detected - ensure proper resource management"
+          fi
+
+          if grep -q "docker" .github/workflows/*.yml; then
+            echo "⚠️  Docker operations detected - consider layer caching"
+          fi
+
+          if grep -q "timeout-minutes:" .github/workflows/*.yml; then
+            echo "✅ Timeouts configured - good for preventing stuck jobs"
+          else
+            echo "⚠️  No timeouts found - consider adding to prevent resource waste"
+          fi
+
+      - name: Generate performance recommendations
+        run: |
+          echo "💡 Performance Recommendations:"
+          echo "==============================="
+          echo ""
+          echo "1. Use matrix strategies for parallel execution"
+          echo "2. Implement aggressive caching for dependencies"
+          echo "3. Use path-based filtering to avoid unnecessary runs"
+          echo "4. Set appropriate timeouts for all jobs"
+          echo "5. Consider using larger runners for CPU-intensive tasks"
+          echo "6. Optimize Docker builds with multi-stage and layer caching"
+          echo "7. Run integration tests only when necessary (not on docs changes)"
+          echo "8. Use conditional job execution based on file changes"
+
+  security-validation:
+    name: Security Configuration Validation
+    runs-on: ubuntu-latest
+    if: github.event.inputs.validation_type == 'all' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check secret usage
+        run: |
+          echo "🔐 Validating secret usage in workflows..."
+
+          # Check for hardcoded secrets (basic check)
+          if grep -r "password\|token\|key" .github/workflows/ | grep -v "secrets\." | grep -v "github.token"; then
+            echo "⚠️  Potential hardcoded secrets found - please review"
+          else
+            echo "✅ No obvious hardcoded secrets detected"
+          fi
+
+      - name: Check permissions
+        run: |
+          echo "🛡️  Checking workflow permissions..."
+
+          # Check if workflows use minimal permissions
+          if grep -q "permissions:" .github/workflows/*.yml; then
+            echo "✅ Explicit permissions found - good security practice"
+          else
+            echo "⚠️  No explicit permissions found - consider adding minimal permissions"
+          fi
+
+      - name: Validate security scanning
+        run: |
+          echo "🔍 Validating security scanning configuration..."
+
+          # Check for security scanning in workflows
+          if grep -q "security" .github/workflows/*.yml; then
+            echo "✅ Security scanning configured"
+          else
+            echo "⚠️  No security scanning found - consider adding vulnerability scanning"
+          fi
+
+  summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs:
+      [
+        validate-workflows,
+        validate-branch-protection,
+        performance-check,
+        security-validation,
+      ]
+    if: always()
+
+    steps:
+      - name: Generate validation summary
+        run: |
+          echo "# CI/CD Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.validate-workflows.result }}" == "success" ]]; then
+            echo "✅ **Workflow Validation**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Workflow Validation**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.validate-branch-protection.result }}" == "success" ]]; then
+            echo "✅ **Branch Protection Validation**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Branch Protection Validation**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.performance-check.result }}" == "success" ]]; then
+            echo "✅ **Performance Check**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Performance Check**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.security-validation.result }}" == "success" ]]; then
+            echo "✅ **Security Validation**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Security Validation**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review any failed validations above" >> $GITHUB_STEP_SUMMARY
+          echo "2. Update workflow configurations as needed" >> $GITHUB_STEP_SUMMARY
+          echo "3. Set up branch protection rules using provided scripts" >> $GITHUB_STEP_SUMMARY
+          echo "4. Monitor CI/CD performance and optimize as suggested" >> $GITHUB_STEP_SUMMARY

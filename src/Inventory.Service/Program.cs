@@ -1,5 +1,6 @@
 using Inventory.Service.Data;
 using Inventory.Service.Services;
+using Inventory.Service.Observability;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using System.Text;
 using Shared.Resilience;
 using Shared.Logging;
 using Shared.Observability;
+using Shared.HealthChecks;
 using Serilog;
 
 // Configure Serilog early in the application startup
@@ -30,6 +32,9 @@ builder.Services.AddObservability(
         .AddSource("Inventory.Service"),
     configureMetrics: metrics => metrics
         .AddMeter("Inventory.Service"));
+
+// Add custom metrics
+builder.Services.AddSingleton<InventoryMetrics>();
 
 // Add authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -62,9 +67,16 @@ builder.Services.AddSingleton<IAlertProducerService, AlertProducerService>();
 // Add resilience policies
 builder.Services.AddResiliencePolicies();
 
-// Add health checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<InventoryDbContext>();
+// Add comprehensive health checks
+builder.Services.AddComprehensiveHealthChecks(
+    serviceName: "Inventory.Service",
+    configureHealthChecks: healthChecks =>
+    {
+        healthChecks.AddDbContextCheck<InventoryDbContext>(tags: ["database", "ready", "live"]);
+
+        // Add Kafka health check if available
+        // healthChecks.AddKafka(options => { /* configure */ }, tags: ["kafka", "ready"]);
+    });
 
 var app = builder.Build();
 
@@ -86,8 +98,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Map health checks
-app.MapHealthChecks("/health");
+// Map comprehensive health checks
+app.MapComprehensiveHealthChecks();
 
 // Map metrics endpoint for Prometheus
 app.MapPrometheusScrapingEndpoint("/metrics");

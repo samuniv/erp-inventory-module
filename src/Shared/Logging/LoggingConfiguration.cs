@@ -67,7 +67,7 @@ public static class LoggingConfiguration
     private static void ConfigureFileSink(LoggerConfiguration loggerConfig, string serviceName)
     {
         var logFileName = serviceName.ToLowerInvariant().Replace(".", "-");
-        
+
         loggerConfig.WriteTo.File(
             path: $"logs/{logFileName}-.log",
             rollingInterval: RollingInterval.Day,
@@ -83,7 +83,7 @@ public static class LoggingConfiguration
     private static void ConfigureSeqSink(LoggerConfiguration loggerConfig)
     {
         var seqUrl = Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341";
-        
+
         loggerConfig.WriteTo.Seq(seqUrl);
     }
 
@@ -131,7 +131,7 @@ public static class LoggingExtensions
     public static IServiceCollection AddStructuredLogging(this IServiceCollection services, string serviceName)
     {
         services.AddHttpContextAccessor();
-        
+
         services.AddSingleton<ILogger>(provider =>
         {
             var configuration = provider.GetService<IConfiguration>();

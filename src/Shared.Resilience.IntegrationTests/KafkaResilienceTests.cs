@@ -33,7 +33,7 @@ public class KafkaResilienceTests : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddConsole());
         services.AddResiliencePolicies();
-        
+
         _serviceProvider = services.BuildServiceProvider();
         _kafkaPolicy = _serviceProvider.GetRequiredKeyedService<IAsyncPolicy>("KafkaPolicy");
     }
@@ -53,7 +53,7 @@ public class KafkaResilienceTests : IAsyncLifetime
         var kafkaOperation = async () =>
         {
             retryCount++;
-            
+
             // Simulate transient failure for first two attempts
             if (retryCount <= 2)
             {
@@ -61,7 +61,7 @@ public class KafkaResilienceTests : IAsyncLifetime
                     new Error(ErrorCode.RequestTimedOut, "Request timed out", false),
                     new DeliveryResult<string, string>());
             }
-            
+
             // Succeed on third attempt
             var config = new ProducerConfig
             {
@@ -70,7 +70,7 @@ public class KafkaResilienceTests : IAsyncLifetime
             };
 
             using var producer = new ProducerBuilder<string, string>(config).Build();
-            
+
             var result = await producer.ProduceAsync(topic, new Message<string, string>
             {
                 Key = "test-key",
@@ -98,7 +98,7 @@ public class KafkaResilienceTests : IAsyncLifetime
         var kafkaOperation = async () =>
         {
             retryCount++;
-            
+
             // Simulate non-transient failure (authentication error)
             throw new ProduceException<string, string>(
                 new Error(ErrorCode.SaslAuthenticationFailed, "Authentication failed", false),
@@ -128,7 +128,7 @@ public class KafkaResilienceTests : IAsyncLifetime
         var kafkaOperation = async () =>
         {
             brokerUnavailableCount++;
-            
+
             if (brokerUnavailableCount == 1)
             {
                 // Simulate broker unavailable on first attempt
@@ -136,7 +136,7 @@ public class KafkaResilienceTests : IAsyncLifetime
                     new Error(ErrorCode.BrokerNotAvailable, "Broker not available", false),
                     new DeliveryResult<string, string>());
             }
-            
+
             // Succeed on retry
             var config = new ProducerConfig
             {
@@ -145,7 +145,7 @@ public class KafkaResilienceTests : IAsyncLifetime
             };
 
             using var producer = new ProducerBuilder<string, string>(config).Build();
-            
+
             var result = await producer.ProduceAsync(topic, new Message<string, string>
             {
                 Key = "broker-test",
@@ -178,7 +178,7 @@ public class KafkaResilienceTests : IAsyncLifetime
         var kafkaOperation = async () =>
         {
             messageSizeAttempts++;
-            
+
             var config = new ProducerConfig
             {
                 BootstrapServers = bootstrapServers,
@@ -186,11 +186,11 @@ public class KafkaResilienceTests : IAsyncLifetime
             };
 
             using var producer = new ProducerBuilder<string, string>(config).Build();
-            
+
             // Create message that might be too large initially
             var messageSize = messageSizeAttempts == 1 ? 1000000 : 1000; // 1MB vs 1KB
             var largeMessage = new string('A', messageSize);
-            
+
             if (messageSizeAttempts == 1)
             {
                 // Simulate message too large error
@@ -198,7 +198,7 @@ public class KafkaResilienceTests : IAsyncLifetime
                     new Error(ErrorCode.MsgSizeTooLarge, "Message size too large", false),
                     new DeliveryResult<string, string>());
             }
-            
+
             var result = await producer.ProduceAsync(topic, new Message<string, string>
             {
                 Key = "size-test",
@@ -252,14 +252,14 @@ public class KafkaResilienceTests : IAsyncLifetime
         {
             retryTimestamps.Add(DateTime.UtcNow);
             retryCount++;
-            
+
             if (retryCount <= 2)
             {
                 throw new ProduceException<string, string>(
                     new Error(ErrorCode.RequestTimedOut, "Timeout for timing test", false),
                     new DeliveryResult<string, string>());
             }
-            
+
             return "Timing test completed";
         };
 
@@ -273,14 +273,14 @@ public class KafkaResilienceTests : IAsyncLifetime
         if (retryTimestamps.Count >= 2)
         {
             var firstRetryDelay = retryTimestamps[1] - retryTimestamps[0];
-            firstRetryDelay.Should().BeGreaterThan(TimeSpan.FromMilliseconds(500), 
+            firstRetryDelay.Should().BeGreaterThan(TimeSpan.FromMilliseconds(500),
                 "First retry should have exponential backoff delay");
         }
 
         if (retryTimestamps.Count >= 3)
         {
             var secondRetryDelay = retryTimestamps[2] - retryTimestamps[1];
-            secondRetryDelay.Should().BeGreaterThan(TimeSpan.FromSeconds(1), 
+            secondRetryDelay.Should().BeGreaterThan(TimeSpan.FromSeconds(1),
                 "Second retry should have longer exponential backoff delay");
         }
     }
@@ -301,15 +301,15 @@ public class KafkaResilienceTests : IAsyncLifetime
         var consumerOperation = async () =>
         {
             connectionLossCount++;
-            
+
             if (connectionLossCount == 1)
             {
                 // Simulate connection loss
                 throw new ConsumeException(
-                    new ConsumeResult<byte[], byte[]>(), 
+                    new ConsumeResult<byte[], byte[]>(),
                     new Error(ErrorCode.NetworkException, "Network connection lost", false));
             }
-            
+
             // Succeed on retry
             var config = new ConsumerConfig
             {
@@ -321,7 +321,7 @@ public class KafkaResilienceTests : IAsyncLifetime
 
             using var consumer = new ConsumerBuilder<string, string>(config).Build();
             consumer.Subscribe(topic);
-            
+
             var result = consumer.Consume(TimeSpan.FromSeconds(10));
             return result?.Message?.Value ?? "No message";
         };
@@ -350,7 +350,7 @@ public class KafkaResilienceTests : IAsyncLifetime
         };
 
         using var producer = new ProducerBuilder<string, string>(config).Build();
-        
+
         await producer.ProduceAsync(topic, new Message<string, string>
         {
             Key = "setup-key",

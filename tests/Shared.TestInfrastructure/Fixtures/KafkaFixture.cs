@@ -33,11 +33,11 @@ public class KafkaFixture : IAsyncLifetime
         {
             _logger.LogInformation("Starting Kafka container...");
             await _container.StartAsync();
-            
+
             // Kafka needs time to initialize
             _logger.LogInformation("Waiting for Kafka to fully initialize...");
             await Task.Delay(TimeSpan.FromSeconds(15));
-            
+
             _logger.LogInformation("Kafka container started successfully. Bootstrap servers: {BootstrapServers}", BootstrapServers);
         }
         catch (Exception ex)
@@ -123,8 +123,8 @@ public class KafkaFixture : IAsyncLifetime
     /// Wait for a message on a topic (useful for testing message production)
     /// </summary>
     public async Task<ConsumeResult<string, string>?> WaitForMessageAsync(
-        string topic, 
-        string consumerGroup, 
+        string topic,
+        string consumerGroup,
         TimeSpan timeout,
         Func<ConsumeResult<string, string>, bool>? predicate = null)
     {
@@ -132,7 +132,7 @@ public class KafkaFixture : IAsyncLifetime
         consumer.Subscribe(topic);
 
         var endTime = DateTime.UtcNow.Add(timeout);
-        
+
         while (DateTime.UtcNow < endTime)
         {
             try

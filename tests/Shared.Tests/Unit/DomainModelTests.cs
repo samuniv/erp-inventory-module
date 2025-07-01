@@ -17,18 +17,18 @@ public class DomainModelTests
         // Arrange
         var orderId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
-        
+
         // This is a simple unit test example
         var orderTotal = 100.50m;
         var tax = 8.50m;
-        
+
         // Act
         var expectedTotal = orderTotal + tax;
-        
+
         // Assert
         expectedTotal.Should().Be(109.00m);
     }
-    
+
     [Fact]
     [Trait("Category", "Unit")]
     public void Inventory_Should_ValidateQuantity_Correctly()
@@ -36,14 +36,14 @@ public class DomainModelTests
         // Arrange
         var availableQuantity = 10;
         var requestedQuantity = 5;
-        
+
         // Act
         var canFulfill = availableQuantity >= requestedQuantity;
-        
+
         // Assert
         canFulfill.Should().BeTrue();
     }
-    
+
     [Theory]
     [Trait("Category", "Unit")]
     [InlineData("", false)]
@@ -54,7 +54,7 @@ public class DomainModelTests
     {
         // Act
         var isValid = !string.IsNullOrWhiteSpace(supplierCode) && supplierCode.Length >= 3;
-        
+
         // Assert
         isValid.Should().Be(expected);
     }
@@ -72,10 +72,10 @@ public class LoggingTests
         // Arrange
         var mockLogger = new Mock<ILogger<LoggingTests>>();
         var message = "Test message";
-        
+
         // Act
         mockLogger.Object.LogInformation(message);
-        
+
         // Assert
         mockLogger.Verify(
             x => x.Log(
@@ -103,10 +103,10 @@ public class ValidationTests
     {
         // Simple email validation for demonstration
         var isValid = !string.IsNullOrWhiteSpace(email) && email.Contains("@") && email.Contains(".");
-        
+
         isValid.Should().Be(expected);
     }
-    
+
     [Theory]
     [Trait("Category", "Unit")]
     [InlineData(0, false)]
@@ -116,7 +116,7 @@ public class ValidationTests
     public void Quantity_Should_ValidateCorrectly(int quantity, bool expected)
     {
         var isValid = quantity > 0;
-        
+
         isValid.Should().Be(expected);
     }
 }

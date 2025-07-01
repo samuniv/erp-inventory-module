@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <ResultsDirectory>./IntegrationTestResults</ResultsDirectory>
+    <TargetPlatform>x64</TargetPlatform>
+    <TestAdaptersPaths>.</TestAdaptersPaths>
+    <MaxCpuCount>0</MaxCpuCount>
+    <EnvironmentVariables>
+      <!-- Testcontainers Configuration -->
+      <TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>
+      <TESTCONTAINERS_CHECKS_DISABLE>true</TESTCONTAINERS_CHECKS_DISABLE>
+      <DOCKER_HOST>unix:///var/run/docker.sock</DOCKER_HOST>
+      
+      <!-- Test Database Configuration -->
+      <DB_CONNECTION_TIMEOUT>60</DB_CONNECTION_TIMEOUT>
+      <TEST_PARALLELIZATION>false</TEST_PARALLELIZATION>
+      
+      <!-- Kafka Test Configuration -->
+      <KAFKA_TEST_TIMEOUT>30</KAFKA_TEST_TIMEOUT>
+      <KAFKA_AUTO_OFFSET_RESET>earliest</KAFKA_AUTO_OFFSET_RESET>
+      
+      <!-- Oracle Test Configuration -->
+      <ORACLE_TEST_TIMEOUT>120</ORACLE_TEST_TIMEOUT>
+      <ORACLE_STARTUP_WAIT>60</ORACLE_STARTUP_WAIT>
+    </EnvironmentVariables>
+  </RunConfiguration>
+  
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>[*.Tests]*,[*]*.Migrations.*</Exclude>
+          <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+
+  <TestRunParameters>
+    <!-- Integration test specific parameters -->
+    <Parameter name="TestTimeout" value="300000" /> <!-- 5 minutes -->
+    <Parameter name="ContainerStartupTimeout" value="180000" /> <!-- 3 minutes -->
+    <Parameter name="DatabaseMigrationTimeout" value="120000" /> <!-- 2 minutes -->
+  </TestRunParameters>
+
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="trx" enabled="True">
+        <Configuration>
+          <LogFileName>integration-test-results.trx</LogFileName>
+        </Configuration>
+      </Logger>
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>normal</Verbosity>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+</RunSettings>

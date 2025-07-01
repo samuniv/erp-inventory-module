@@ -34,11 +34,11 @@ public class OracleFixture : IAsyncLifetime
         {
             _logger.LogInformation("Starting Oracle container...");
             await _container.StartAsync();
-            
+
             // Oracle needs extra time to fully initialize
             _logger.LogInformation("Waiting for Oracle to fully initialize...");
             await Task.Delay(TimeSpan.FromSeconds(30));
-            
+
             _logger.LogInformation("Oracle container started successfully. Connection string: {ConnectionString}", ConnectionString);
         }
         catch (Exception ex)
